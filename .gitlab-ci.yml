@@ -1,4 +1,4 @@
-include: 'https://http://wiremind.gitlab.wiremind.io/gitlab-ci-common/0.0.5/gitlab-ci-common-libraries.yml'
+include: 'http://wiremind.gitlab.wiremind.io/gitlab-ci-common/v0.0.6/gitlab-ci-common-libraries.yml'  # XXX HTTPS
 
 variables:
   PACKAGE_NAME: wiremind_kubernetes
