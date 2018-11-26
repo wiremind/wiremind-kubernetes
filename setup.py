@@ -4,7 +4,6 @@ wiremind-kubernetes
 Copyright 2018, wiremind.
 """
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
 
 with open('VERSION') as version_file:
     version = version_file.read().strip()
