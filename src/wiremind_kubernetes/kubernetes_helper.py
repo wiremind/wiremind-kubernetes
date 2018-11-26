@@ -4,6 +4,7 @@ from future.standard_library import install_aliases
 install_aliases()
 
 import os
+import time
 
 import kubernetes
 
@@ -32,7 +33,7 @@ class KubernetesHelper(object):
         """
         if use_kubeconfig:
             # Fixes https://github.com/kubernetes-client/python-base/issues/65
-            kubernetes.config.kube_config.KubeConfigLoader._load_oid_token = _load_oid_token
+            kubernetes.config.kube_config.KubeConfigLoader._load_oid_token = _load_oid_token # noqa
             kubernetes.config.load_kube_config()
         else:
             kubernetes.config.load_incluster_config()
@@ -79,27 +80,69 @@ class KubernetesHelper(object):
         ).status.replicas
         return replicas == 0
 
-    @retry_kubernetes_request
-    def get_deployment_name_to_be_stopped_list(self):
+
+class KubernetesDeploymentManager(KubernetesHelper):
+    """
+    Subclass of Kubernetes Helper allowing to scale down/up all pods that
+    should be stopped/started when doing database migration/maintenance
+    (alembic, dump, etc).
+
+    Usage:
+    a = wiremind_kubernetes.KubernetesDeploymentManager(use_kubeconfig=True, deployment_namespace="my-namespace")
+    a.stop_pods()
+    do_something('wololo')
+    a.start_pods()
+    """
+
+    def __init__(self, release_name=None, **kwargs):
+        if release_name:
+            self.release_name = release_name
+        else:
+            release_name = os.environ.get('RELEASE_NAME')
+        super().__init__(**kwargs)
+
+    def start_pods(self):
         """
-        Return a list of celery or any other deployment that requires
-        stop before migration and start after migration.
+        Start all Pods that should be started
         """
-        print("Getting deployment-to-be-stopped-before-deployment list")
-        release_name = os.environ['RELEASE_NAME']
-        deployment_list = self.client_appsv1_api.list_namespaced_deployment(
-            watch=False,
-            label_selector="chartreuse=enabled,release=%s" % release_name,
-            namespace=self.deployment_namespace,
-        ).items
-        deployment_name_list = [
-            deployment.metadata.name for deployment in deployment_list
-        ]
-        print("List is: %s" % deployment_name_list)
-        return deployment_name_list
+        expected_deployment_scale_dict = self._get_expected_deployment_scale_dict()
+
+        if not expected_deployment_scale_dict:
+            return
+
+        print("Scaling up pods")
+        for (name, amount) in expected_deployment_scale_dict.items():
+            self.scale_up_deployment(name, amount)
+
+    def stop_pods(self):
+        """
+        SQL migration implies that every backend pod should be restarted.
+        We stop them before applying migration
+        """
+        expected_deployment_scale_dict = self._get_expected_deployment_scale_dict()
+
+        if not expected_deployment_scale_dict:
+            return
+
+        print("Shutting down pods")
+        for deployment_name in expected_deployment_scale_dict.keys():
+            self.scale_down_deployment(deployment_name)
+
+        # Make sure to wait for actual stop (can be looong)
+        for _ in range(360):  # 1 hour
+            time.sleep(10)
+            stopped = 0
+            for deployment_name in expected_deployment_scale_dict.keys():
+                if self.is_deployment_stopped(deployment_name):
+                    stopped += 1
+            if stopped == len(expected_deployment_scale_dict):
+                break
+            else:
+                print("All pods not stopped yet. Waiting...")
+        print("All pods have been stopped.")
 
     @retry_kubernetes_request
-    def get_expected_deployment_scale_dict(self, release_name=None):
+    def _get_expected_deployment_scale_dict(self, release_name=None):
         """
         Return a dict of expected deployment scale
 
@@ -107,8 +150,6 @@ class KubernetesHelper(object):
         value: expected Deployment Scale (replicas)
         """
         print("Getting Expected Deployment Scale list")
-        if not release_name:
-            release_name = os.environ.get('RELEASE_NAME')
         if not release_name:
             eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
                 namespace=self.deployment_namespace,
