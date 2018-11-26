@@ -108,14 +108,22 @@ class KubernetesHelper(object):
         """
         print("Getting Expected Deployment Scale list")
         if not release_name:
-            release_name = os.environ['RELEASE_NAME']
-        eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
-            namespace=self.deployment_namespace,
-            group="wiremind.fr",
-            version="v1",
-            plural="expecteddeploymentscales",
-            label_selector="release=%s" % release_name,
-        )
+            release_name = os.environ.get('RELEASE_NAME')
+        if not release_name:
+            eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
+                namespace=self.deployment_namespace,
+                group="wiremind.fr",
+                version="v1",
+                plural="expecteddeploymentscales"
+            )
+        else:
+            eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
+                namespace=self.deployment_namespace,
+                group="wiremind.fr",
+                version="v1",
+                plural="expecteddeploymentscales",
+                label_selector="release=%s" % release_name,
+            )
         eds_dict = {
             eds['spec']['deploymentName']: eds['spec']['expectedScale'] for eds in eds_list['items']
         }
