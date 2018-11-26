@@ -4,14 +4,9 @@ from future.standard_library import install_aliases
 install_aliases()
 
 import functools
-import os
-import re
 import shlex
-import socket
 import subprocess
-import sys
 import time
-import urllib.parse
 
 import kubernetes
 

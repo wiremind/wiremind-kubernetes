@@ -8,6 +8,7 @@ import os
 import kubernetes
 
 from .utils import retry_kubernetes_request
+from .kube_config import _load_oid_token
 
 
 class KubernetesHelper(object):
@@ -19,13 +20,30 @@ class KubernetesHelper(object):
     client_appsv1_api = None
     client_custom_objects_api = None
 
-    def __init__(self):
-        kubernetes.config.load_incluster_config()
+    def __init__(self, use_kubeconfig=False, deployment_namespace=None):
+        """
+        :param use_kubeconfig:
+            Use ~/.kube/config file to authenticate.
+            If false, use kubernetes built-in in_cluster mechanism.
+            Defaults to False.
+        :param deployment_namespace:
+            Target namespace to use.
+            If not defined, try to get it from kubernetes built-in serviceAccount mechanism.
+        """
+        if use_kubeconfig:
+            # Fixes https://github.com/kubernetes-client/python-base/issues/65
+            kubernetes.config.kube_config.KubeConfigLoader._load_oid_token = _load_oid_token
+            kubernetes.config.load_kube_config()
+        else:
+            kubernetes.config.load_incluster_config()
         self.client_appsv1_api = kubernetes.client.AppsV1Api()
         self.client_custom_objects_api = kubernetes.client.CustomObjectsApi()
-        self.deployment_namespace = open(
-            "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-        ).read()
+        if deployment_namespace:
+            self.deployment_namespace = deployment_namespace
+        else:
+            self.deployment_namespace = open(
+                "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+            ).read()
 
     @retry_kubernetes_request
     def get_deployment_scale(self, deployment_name):
@@ -74,12 +92,14 @@ class KubernetesHelper(object):
             label_selector="chartreuse=enabled,release=%s" % release_name,
             namespace=self.deployment_namespace,
         ).items
-        deployment_name_list = [deployment.metadata.name for deployment in deployment_list]
+        deployment_name_list = [
+            deployment.metadata.name for deployment in deployment_list
+        ]
         print("List is: %s" % deployment_name_list)
         return deployment_name_list
 
     @retry_kubernetes_request
-    def get_expected_deployment_scale_dict(self):
+    def get_expected_deployment_scale_dict(self, release_name=None):
         """
         Return a dict of expected deployment scale
 
@@ -87,7 +107,8 @@ class KubernetesHelper(object):
         value: expected Deployment Scale (replicas)
         """
         print("Getting Expected Deployment Scale list")
-        release_name = os.environ['RELEASE_NAME']
+        if not release_name:
+            release_name = os.environ['RELEASE_NAME']
         eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
             namespace=self.deployment_namespace,
             group="wiremind.fr",
@@ -95,6 +116,8 @@ class KubernetesHelper(object):
             plural="expecteddeploymentscales",
             label_selector="release=%s" % release_name,
         )
-        eds_dict = {eds['spec']['deploymentName']: eds['spec']['expectedScale'] for eds in eds_list['items']}
+        eds_dict = {
+            eds['spec']['deploymentName']: eds['spec']['expectedScale'] for eds in eds_list['items']
+        }
         print("List is %s" % eds_dict)
         return eds_dict
