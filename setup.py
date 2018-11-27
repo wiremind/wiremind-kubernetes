@@ -21,7 +21,7 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,
     zip_safe=True,
-    install_requires=["kubernetes", "requests", "future"],
+    install_requires=["kubernetes", "future"],
     extras_require={
         'dev': [
             'nose>=1.0',
