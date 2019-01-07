@@ -99,7 +99,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
             self.release_name = release_name
         else:
             release_name = os.environ.get('RELEASE_NAME')
-        super().__init__(**kwargs)
+        super(KubernetesDeploymentManager, self).__init__(**kwargs)
 
     def start_pods(self):
         """
