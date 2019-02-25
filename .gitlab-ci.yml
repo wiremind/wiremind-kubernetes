@@ -1,4 +1,8 @@
-include: 'https://wiremind.gitlab.wiremind.io/gitlab-ci-common/v3.0.1/gitlab-ci-common-libraries.yml'
+include:
+  - project: 'wiremind/gitlab-ci-common'
+    ref: v4.1.1
+    file: 'gitlab-ci-common-libraries.yml'
 
 variables:
+  EGG_NAME: wiremind-kubernetes
   PACKAGE_NAME: wiremind_kubernetes
