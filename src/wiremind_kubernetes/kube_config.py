@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
+
 import kubernetes
+
+
+logger = logging.getLogger(__name__)
 
 
 # Fixes https://github.com/kubernetes-client/python-base/issues/65
@@ -46,3 +51,38 @@ def _load_oid_token(self, provider):
     self.token = "Bearer %s" % provider['config']['id-token']
 
     return self.token
+
+
+def _load_kubeconfig():
+    # Fixes https://github.com/kubernetes-client/python-base/issues/65
+    kubernetes.config.kube_config.KubeConfigLoader._load_oid_token = _load_oid_token  # noqa
+    kubernetes.config.load_kube_config()
+    logger.info('Kubernetes configuration successfully set.')
+
+
+def _load_incluster_config():
+    kubernetes.config.load_incluster_config()
+    logger.info('Kubernetes configuration successfully set.')
+
+
+def load_kubernetes_config(use_kubeconfig=None):
+    """
+    Load kubernetes configuration in memory, either from incluster method or from kubeconfig.
+    :param use_kubeconfig:
+        If True: Use ~/.kube/config file to authenticate.
+        If false: use kubernetes built-in incluster mechanism.
+        If None, will try to load built-in incluster mechanism, then try config file.
+        Defaults to None.
+    """
+    if use_kubeconfig is True:
+        _load_kubeconfig()
+    if use_kubeconfig is False:
+        _load_incluster_config()
+    if use_kubeconfig is None:
+        try:
+            _load_incluster_config()
+        except Exception as e:  # noqa
+            logger.warning('Warning: Impossible to log using incluster config:')
+            logger.exception(e)
+            logger.warning('Trying using kube config')
+            _load_kubeconfig()

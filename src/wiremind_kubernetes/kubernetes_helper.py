@@ -9,7 +9,7 @@ import time
 import kubernetes
 
 from .utils import retry_kubernetes_request
-from .kube_config import _load_oid_token
+from .kube_config import load_kubernetes_config
 
 
 class KubernetesHelper(object):
@@ -31,12 +31,7 @@ class KubernetesHelper(object):
             Target namespace to use.
             If not defined, try to get it from kubernetes built-in serviceAccount mechanism.
         """
-        if use_kubeconfig:
-            # Fixes https://github.com/kubernetes-client/python-base/issues/65
-            kubernetes.config.kube_config.KubeConfigLoader._load_oid_token = _load_oid_token # noqa
-            kubernetes.config.load_kube_config()
-        else:
-            kubernetes.config.load_incluster_config()
+        load_kubernetes_config(use_kubeconfig=use_kubeconfig)
         self.client_appsv1_api = kubernetes.client.AppsV1Api()
         self.client_custom_objects_api = kubernetes.client.CustomObjectsApi()
         if deployment_namespace:
