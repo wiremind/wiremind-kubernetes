@@ -1,0 +1,22 @@
+apiVersion: "wiremind.fr/v1"
+kind: ExpectedDeploymentScale
+metadata:
+  name: concerned-eds
+  labels:
+    release: concerned
+spec:
+  deploymentName: concerned
+  expectedScale: 3
+
+
+---
+
+apiVersion: "wiremind.fr/v1"
+kind: ExpectedDeploymentScale
+metadata:
+  name: unconcerned-eds
+  labels:
+    release: unconcerned
+spec:
+  deploymentName: unconcerned
+  expectedScale: 3

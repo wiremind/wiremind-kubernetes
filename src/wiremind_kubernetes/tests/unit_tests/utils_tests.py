@@ -3,7 +3,7 @@ import unittest
 
 import kubernetes.client.rest
 
-from ..utils import retry_kubernetes_request
+from wiremind_kubernetes.utils import retry_kubernetes_request
 
 
 class RetryTestCase(unittest.TestCase):

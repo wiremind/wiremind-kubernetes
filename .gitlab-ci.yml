@@ -6,3 +6,52 @@ include:
 variables:
   EGG_NAME: wiremind-kubernetes
   PACKAGE_NAME: wiremind_kubernetes
+  SRC_DIR: src
+
+test-python3.6:
+  variables:
+    UNIT_T: $PACKAGE_NAME/tests/unit_tests
+  script:
+    - cd $SRC_DIR; pwd
+    - nosetests $UNIT_T -v --cover-html --with-coverage --cover-tests --cover-package=$PACKAGE_NAME --cover-inclusive --cover-erase --cover-branches --cover-html-dir=coverage
+
+e2e-tests:
+  variables:
+    E2E_T: $PACKAGE_NAME/tests/e2e_tests
+  tags:
+    - end2end
+  stage: test
+  image: "wiremind/kindindind:latest"
+  before_script:
+    - /usr/local/bin/dockerd-entrypoint.sh --storage-driver=overlay2 > /dev/null 2>&1 &
+    - pip3 install nose coverage
+    - pip3 install --prefer-binary -r requirements.txt --extra-index-url https://readonly:$PYPI_PASSWORD_READONLY@pypi.wiremind.fr && pip3 install -e .
+  script:
+    - kind create cluster
+    - export KUBECONFIG="$(kind get kubeconfig-path)"
+    - cd $SRC_DIR; pwd
+    - (for n in 1 2 3 4 5; do kubectl apply -f $E2E_T/manifests && break; sleep 5; done);
+    - nosetests $E2E_T -v --cover-html --with-coverage --cover-tests --cover-package=$PACKAGE_NAME --cover-inclusive --cover-erase --cover-branches --cover-html-dir=coverage
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  artifacts:
+    paths:
+      - $SRC_DIR/coverage
+    expire_in: 1 day
+
+mypy:
+  image: python:3.6
+
+linting-python2.7:
+  only:
+    - never-run-this
+linting-python3.5:
+  only:
+    - never-run-this
+
+test-python2.7:
+  only:
+    - never-run-this
+test-python3.5:
+  only:
+    - never-run-this
+

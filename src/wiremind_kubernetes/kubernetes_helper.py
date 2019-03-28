@@ -81,6 +81,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
     Subclass of Kubernetes Helper allowing to scale down/up all pods that
     should be stopped/started when doing database migration/maintenance
     (alembic, dump, etc).
+    The associated Deployment should define an eds.
 
     Usage:
     a = wiremind_kubernetes.KubernetesDeploymentManager(use_kubeconfig=True, deployment_namespace="my-namespace")
@@ -93,7 +94,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
         if release_name:
             self.release_name = release_name
         else:
-            release_name = os.environ.get('RELEASE_NAME')
+            self.release_name = os.environ.get('RELEASE_NAME')
         super(KubernetesDeploymentManager, self).__init__(**kwargs)
 
     def start_pods(self):
@@ -141,7 +142,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
         """
         Return a dict of expected deployment scale
 
-        key: Deployment name
+        key: Deployment name, only if it has an associated eds
         value: expected Deployment Scale (replicas)
         """
         print("Getting Expected Deployment Scale list")

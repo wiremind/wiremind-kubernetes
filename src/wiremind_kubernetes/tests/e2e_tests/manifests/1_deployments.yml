@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: concerned
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sleepy
+  template:
+    metadata:
+      labels:
+        app: sleepy
+    spec:
+      containers:
+      - name: alpine
+        image: alpine
+        command: ["sleep"]
+        args: ["1000000000"]
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unconcerned
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sleepy
+  template:
+    metadata:
+      labels:
+        app: sleepy
+    spec:
+      containers:
+      - name: alpine
+        image: alpine
+        command: ["sleep"]
+        args: ["1000000000"]
