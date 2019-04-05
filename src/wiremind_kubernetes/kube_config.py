@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import os
 
 import kubernetes
 
@@ -79,10 +80,7 @@ def load_kubernetes_config(use_kubeconfig=None):
     if use_kubeconfig is False:
         _load_incluster_config()
     if use_kubeconfig is None:
-        try:
+        if os.path.exists(kubernetes.config.incluster_config.SERVICE_TOKEN_FILENAME):
             _load_incluster_config()
-        except Exception as e:  # noqa
-            logger.warning('Warning: Impossible to log using incluster config:')
-            logger.exception(e)
-            logger.warning('Trying using kube config')
+        else:
             _load_kubeconfig()
