@@ -18,5 +18,5 @@ class StartStopTest(unittest.TestCase):
         print("-----")
         self.concerned_dm.stop_pods()
         self.assertTrue(self.concerned_dm.is_deployment_stopped("concerned"))
-        self.assertTrue(self.unconcerned_dm.is_deployment_stopped("unconcerned"))
+        self.assertFalse(self.unconcerned_dm.is_deployment_stopped("unconcerned"))
         print("-----")
