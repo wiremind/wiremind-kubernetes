@@ -1,6 +1,8 @@
 # wiremind-kubernetes
 
-## 0.5.0 (2019-04-09)
+## 1.0.0 (2019-04-09)
+### Breaking changes
+- Improve `_run_command` helper, rename it to `run_command`.
 ### Changes
 - Use logger everywhere.
 - Add `kubernetes_exec` helper function.
