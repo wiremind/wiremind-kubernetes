@@ -142,7 +142,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
         logger.info("All pods have been stopped.")
 
     @retry_kubernetes_request
-    def _get_expected_deployment_scale_dict(self, release_name=None):
+    def _get_expected_deployment_scale_dict(self):
         """
         Return a dict of expected deployment scale
 
@@ -150,7 +150,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
         value: expected Deployment Scale (replicas)
         """
         logger.debug("Getting Expected Deployment Scale list")
-        if not release_name:
+        if not self.release_name:
             eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
                 namespace=self.deployment_namespace,
                 group="wiremind.fr",
@@ -163,7 +163,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
                 group="wiremind.fr",
                 version="v1",
                 plural="expecteddeploymentscales",
-                label_selector="release=%s" % release_name,
+                label_selector="release=%s" % self.release_name,
             )
         eds_dict = {
             eds['spec']['deploymentName']: eds['spec']['expectedScale'] for eds in eds_list['items']

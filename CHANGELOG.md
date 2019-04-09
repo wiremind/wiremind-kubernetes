@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.0.1 (2019-04-09)
+### Changes
+- KubernetesDeploymentManager: use `release_name` for real.
+
 ## 1.0.0 (2019-04-09)
 ### Breaking changes
 - Improve `_run_command` helper, rename it to `run_command`.
