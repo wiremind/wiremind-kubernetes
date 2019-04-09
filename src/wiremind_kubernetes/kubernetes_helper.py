@@ -3,6 +3,7 @@ from future.standard_library import install_aliases
 
 install_aliases()
 
+import logging
 import os
 import time
 
@@ -10,6 +11,9 @@ import kubernetes
 
 from .utils import retry_kubernetes_request
 from .kube_config import load_kubernetes_config
+
+
+logger = logging.getLogger(__name__)
 
 
 class KubernetesHelper(object):
@@ -43,7 +47,7 @@ class KubernetesHelper(object):
 
     @retry_kubernetes_request
     def get_deployment_scale(self, deployment_name):
-        print("Getting deployment scale for %s" % deployment_name)
+        logger.debug("Getting deployment scale for %s" % deployment_name)
         return self.client_appsv1_api.read_namespaced_deployment_scale(
             deployment_name, self.deployment_namespace, pretty="true"
         )
@@ -51,7 +55,7 @@ class KubernetesHelper(object):
     @retry_kubernetes_request
     def scale_down_deployment(self, deployment_name):
         body = self.get_deployment_scale(deployment_name)
-        print("Deleting all Pods for %s" % deployment_name)
+        logger.info("Deleting all Pods for %s" % deployment_name)
         body.spec.replicas = 0
         self.client_appsv1_api.patch_namespaced_deployment_scale(
             deployment_name, self.deployment_namespace, body, pretty="true"
@@ -60,16 +64,16 @@ class KubernetesHelper(object):
     @retry_kubernetes_request
     def scale_up_deployment(self, deployment_name, pod_amount):
         body = self.get_deployment_scale(deployment_name)
-        print("Recreating backend Pods for %s" % deployment_name)
+        logger.debug("Recreating backend Pods for %s" % deployment_name)
         body.spec.replicas = pod_amount
         self.client_appsv1_api.patch_namespaced_deployment_scale(
             deployment_name, self.deployment_namespace, body, pretty="true"
         )
-        print("Done recreating.")
+        logger.debug("Done recreating.")
 
     @retry_kubernetes_request
     def is_deployment_stopped(self, deployment_name):
-        print("Asking if deployment %s is stopped" % deployment_name)
+        logger.debug("Asking if deployment %s is stopped" % deployment_name)
         replicas = self.client_appsv1_api.read_namespaced_deployment_scale(
             deployment_name, self.deployment_namespace, pretty="true"
         ).status.replicas
@@ -106,7 +110,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
         if not expected_deployment_scale_dict:
             return
 
-        print("Scaling up pods")
+        logger.info("Scaling up pods")
         for (name, amount) in expected_deployment_scale_dict.items():
             self.scale_up_deployment(name, amount)
 
@@ -120,7 +124,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
         if not expected_deployment_scale_dict:
             return
 
-        print("Shutting down pods")
+        logger.info("Shutting down pods")
         for deployment_name in expected_deployment_scale_dict.keys():
             self.scale_down_deployment(deployment_name)
 
@@ -134,8 +138,8 @@ class KubernetesDeploymentManager(KubernetesHelper):
             if stopped == len(expected_deployment_scale_dict):
                 break
             else:
-                print("All pods not stopped yet. Waiting...")
-        print("All pods have been stopped.")
+                logger.info("All pods not stopped yet. Waiting...")
+        logger.info("All pods have been stopped.")
 
     @retry_kubernetes_request
     def _get_expected_deployment_scale_dict(self, release_name=None):
@@ -145,7 +149,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
         key: Deployment name, only if it has an associated eds
         value: expected Deployment Scale (replicas)
         """
-        print("Getting Expected Deployment Scale list")
+        logger.debug("Getting Expected Deployment Scale list")
         if not release_name:
             eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
                 namespace=self.deployment_namespace,
@@ -164,5 +168,5 @@ class KubernetesDeploymentManager(KubernetesHelper):
         eds_dict = {
             eds['spec']['deploymentName']: eds['spec']['expectedScale'] for eds in eds_list['items']
         }
-        print("List is %s" % eds_dict)
+        logger.debug("List is %s" % eds_dict)
         return eds_dict
