@@ -15,8 +15,6 @@ class StartStopTest(unittest.TestCase):
         """
         stop all deployments THAT HAVE AN EDS in the namespace default.
         """
-        print("-----")
         self.concerned_dm.stop_pods()
         self.assertTrue(self.concerned_dm.is_deployment_stopped("concerned"))
         self.assertFalse(self.unconcerned_dm.is_deployment_stopped("unconcerned"))
-        print("-----")

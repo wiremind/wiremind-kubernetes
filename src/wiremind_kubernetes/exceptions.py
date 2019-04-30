@@ -14,3 +14,9 @@ class ExecError(WiremindKubernetesException):
     """
     def __init__(self):
         super().__init__(message="An error occured while executing kubernetes command.")
+
+
+class PodNotFound(WiremindKubernetesException):
+    """
+    A required pod was not found.
+    """

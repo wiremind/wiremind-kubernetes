@@ -27,6 +27,7 @@ setup(
             'nose>=1.0',
             'mock',
             'coverage',
+            'pip-tools',
         ]
     },
 )

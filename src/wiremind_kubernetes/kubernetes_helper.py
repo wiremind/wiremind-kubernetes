@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-from future.standard_library import install_aliases
-
-install_aliases()
-
 import logging
 import os
 import time
 
 import kubernetes
+from future.standard_library import install_aliases
 
-from .utils import retry_kubernetes_request
+from wiremind_kubernetes.exceptions import PodNotFound
+
 from .kube_config import load_kubernetes_config
+from .utils import retry_kubernetes_request
+
+install_aliases()
 
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class KubernetesHelper(object):
         """
         load_kubernetes_config(use_kubeconfig=use_kubeconfig)
         self.client_appsv1_api = kubernetes.client.AppsV1Api()
+        self.core_api = kubernetes.client.CoreV1Api()
         self.client_custom_objects_api = kubernetes.client.CustomObjectsApi()
         if deployment_namespace:
             self.deployment_namespace = deployment_namespace
@@ -78,6 +80,28 @@ class KubernetesHelper(object):
             deployment_name, self.deployment_namespace, pretty="true"
         ).status.replicas
         return replicas == 0
+
+    @retry_kubernetes_request
+    def getPodNameFromDeployment(self, deployment_name, namespace_name):
+        """
+        From a given deployment, get the first pod name
+        """
+        try:
+            deployment = self.client_appsv1_api.read_namespaced_deployment(deployment_name, namespace_name)
+        except kubernetes.client.rest.ApiException as e:
+            if e.status == 404:
+                raise PodNotFound(
+                    'No deployment %s was found in the namespace %s' % (deployment_name, namespace_name)
+                )
+            else:
+                raise
+        selector = ','.join('%s=%s' % (key, value) for key, value in deployment.spec.selector.match_labels.items())
+        pod_list = self.core_api.list_namespaced_pod(namespace_name, label_selector=selector).items
+        if not pod_list:
+            raise PodNotFound(
+                'No matching pod was found in the namespace %s' % (namespace_name)
+            )
+        return pod_list[0].metadata.name
 
 
 class KubernetesDeploymentManager(KubernetesHelper):
