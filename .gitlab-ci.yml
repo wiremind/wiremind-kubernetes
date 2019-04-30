@@ -1,6 +1,6 @@
 include:
   - project: 'wiremind/gitlab-ci-common'
-    ref: v5.1.0
+    ref: v7.2.0
     file: 'gitlab-ci-common-libraries.yml'
 
 variables:
@@ -38,9 +38,6 @@ e2e-tests:
       - $SRC_DIR/coverage
     expire_in: 1 day
 
-mypy:
-  image: python:3.6
-
 linting-python2.7:
   only:
     - never-run-this
@@ -54,4 +51,3 @@ test-python2.7:
 test-python3.5:
   only:
     - never-run-this
-
