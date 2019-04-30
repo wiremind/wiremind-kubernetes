@@ -29,6 +29,7 @@ e2e-tests:
   script:
     - kind create cluster
     - export KUBECONFIG="$(kind get kubeconfig-path)"
+    - kubectl get nodes
     - cd $SRC_DIR; pwd
     - (for n in 1 2 3 4 5; do kubectl apply -f $E2E_T/manifests && break; sleep 5; done);
     - nosetests $E2E_T -v --cover-html --with-coverage --cover-tests --cover-package=$PACKAGE_NAME --cover-inclusive --cover-erase --cover-branches --cover-html-dir=coverage
