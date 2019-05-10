@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.1.2 (2019-05-10)
+### Changes
+- Move a few logs to debug.
+
 ## 1.1.1 (2019-05-10)
 ### Changes
 - improve `run_command` to log live output.

@@ -58,12 +58,12 @@ def _load_kubeconfig():
     # Fixes https://github.com/kubernetes-client/python-base/issues/65
     kubernetes.config.kube_config.KubeConfigLoader._load_oid_token = _load_oid_token  # noqa
     kubernetes.config.load_kube_config()
-    logger.info('Kubernetes configuration successfully set.')
+    logger.debug('Kubernetes configuration successfully set.')
 
 
 def _load_incluster_config():
     kubernetes.config.load_incluster_config()
-    logger.info('Kubernetes configuration successfully set.')
+    logger.debug('Kubernetes configuration successfully set.')
 
 
 def load_kubernetes_config(use_kubeconfig=None):
