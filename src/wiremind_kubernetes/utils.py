@@ -17,7 +17,7 @@ from wiremind_kubernetes.exceptions import ExecError
 logger = logging.getLogger(__name__)
 
 
-def run_command(command):
+def run_command(command, *args, **kw_args):
     """
     Run command, print stdout/stderr, check that command exited correctly, return stdout/err
     """
@@ -26,18 +26,17 @@ def run_command(command):
         command = shlex.split(command)
     process = subprocess.Popen(
         command,
+        *args,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         universal_newlines=True,
+        **kw_args
     )
-    out, err = process.communicate()
-    if out:
-        logger.info(out)
-    if err:
-        logger.error(err)
+    for line in iter(process.stdout.readline, ''):
+        logger.info(line.strip())
+    process.wait()
     if process.returncode:
         raise subprocess.CalledProcessError(process.returncode, command)
-    return (out, err)
 
 
 def retry_kubernetes_request(function):

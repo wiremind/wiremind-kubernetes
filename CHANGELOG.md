@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.1.1 (2019-05-10)
+### Changes
+- improve `run_command` to log live output.
+
 ## 1.0.1 (2019-04-09)
 ### Changes
 - KubernetesDeploymentManager: use `release_name` for real.
