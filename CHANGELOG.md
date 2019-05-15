@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.1.5 (2019-05-14)
+### Changes
+- `run_command`: allow to return output.
+
 ## 1.1.3 (2019-05-14)
 ### Changes
 - stop-pods: wait only 2 seconds before checking, change logger output levels.
