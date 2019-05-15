@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.1.3 (2019-05-14)
+### Changes
+- stop-pods: wait only 2 seconds before checking, change logger output levels.
+
 ## 1.1.2 (2019-05-10)
 ### Changes
 - Move a few logs to debug.

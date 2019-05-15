@@ -57,11 +57,12 @@ class KubernetesHelper(object):
     @retry_kubernetes_request
     def scale_down_deployment(self, deployment_name):
         body = self.get_deployment_scale(deployment_name)
-        logger.info("Deleting all Pods for %s", deployment_name)
+        logger.debug("Deleting all Pods for %s", deployment_name)
         body.spec.replicas = 0
         self.client_appsv1_api.patch_namespaced_deployment_scale(
             deployment_name, self.deployment_namespace, body, pretty="true"
         )
+        logger.debug("Done deleting.")
 
     @retry_kubernetes_request
     def scale_up_deployment(self, deployment_name, pod_amount):
@@ -134,9 +135,10 @@ class KubernetesDeploymentManager(KubernetesHelper):
         if not expected_deployment_scale_dict:
             return
 
-        logger.info("Scaling up pods")
+        logger.info("Scaling up application Deployments...")
         for (name, amount) in expected_deployment_scale_dict.items():
             self.scale_up_deployment(name, amount)
+        logger.info("Done scaling up application Deployments.")
 
     def stop_pods(self):
         """
@@ -148,13 +150,13 @@ class KubernetesDeploymentManager(KubernetesHelper):
         if not expected_deployment_scale_dict:
             return
 
-        logger.info("Shutting down pods")
+        logger.info("Scaling down application Deployments...")
         for deployment_name in expected_deployment_scale_dict.keys():
             self.scale_down_deployment(deployment_name)
 
         # Make sure to wait for actual stop (can be looong)
         for _ in range(360):  # 1 hour
-            time.sleep(10)
+            time.sleep(2)
             stopped = 0
             for deployment_name in expected_deployment_scale_dict.keys():
                 if self.is_deployment_stopped(deployment_name):
@@ -162,8 +164,8 @@ class KubernetesDeploymentManager(KubernetesHelper):
             if stopped == len(expected_deployment_scale_dict):
                 break
             else:
-                logger.info("All pods not stopped yet. Waiting...")
-        logger.info("All pods have been stopped.")
+                logger.info("All pods not deleted yet. Waiting...")
+        logger.info("Done scaling down application Deployments, all Pods have been deleted.")
 
     @retry_kubernetes_request
     def _get_expected_deployment_scale_dict(self):
