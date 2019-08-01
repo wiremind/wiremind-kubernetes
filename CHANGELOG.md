@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.1.6 (2019-08-01)
+### Changes
+- scale-down: sleep 1 second instead of 2.
+
 ## 1.1.5 (2019-05-14)
 ### Changes
 - `run_command`: allow to return output.

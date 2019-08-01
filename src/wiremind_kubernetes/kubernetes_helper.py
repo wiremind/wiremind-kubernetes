@@ -156,7 +156,7 @@ class KubernetesDeploymentManager(KubernetesHelper):
 
         # Make sure to wait for actual stop (can be looong)
         for _ in range(360):  # 1 hour
-            time.sleep(2)
+            time.sleep(1)
             stopped = 0
             for deployment_name in expected_deployment_scale_dict.keys():
                 if self.is_deployment_stopped(deployment_name):
