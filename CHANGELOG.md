@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.1.7 (2019-08-21)
+### Fixes
+- remove hardcoded `load_oid_token`, upgrade to kubernetes 10.x.x.
+
 ## 1.1.6 (2019-08-01)
 ### Changes
 - scale-down: sleep 1 second instead of 2.
