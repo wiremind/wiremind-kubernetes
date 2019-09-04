@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.2.0 (2019-09-04)
+### Features
+- run_command: allow to give a callback to call for each new stdout line.
+
 ## 1.1.7 (2019-08-21)
 ### Fixes
 - remove hardcoded `load_oid_token`, upgrade to kubernetes 10.x.x.

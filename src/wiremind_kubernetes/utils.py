@@ -17,13 +17,15 @@ from wiremind_kubernetes.exceptions import ExecError
 logger = logging.getLogger(__name__)
 
 
-def run_command(command, return_output=False, *args, **kw_args):
+def run_command(command, return_output=False, line_callback=None, *args, **kw_args):
     """
     Run command, print stdout/stderr, check that command exited correctly, return stdout/err
     """
     logger.info("Running %s", command)
     if isinstance(command, str):
         command = shlex.split(command)
+    if not line_callback:
+        line_callback = logger.info
     process = subprocess.Popen(
         command,
         *args,
@@ -36,7 +38,7 @@ def run_command(command, return_output=False, *args, **kw_args):
         out, err = process.communicate()
     else:
         for line in iter(process.stdout.readline, ''):
-            logger.info(line.strip())
+            line_callback(line.strip())
         process.wait()
     if process.returncode:
         raise subprocess.CalledProcessError(process.returncode, command)
