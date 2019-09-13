@@ -26,7 +26,7 @@ class KubernetesHelper(object):
     client_appsv1_api = None
     client_custom_objects_api = None
 
-    def __init__(self, use_kubeconfig=False, deployment_namespace=None):
+    def __init__(self, use_kubeconfig=False, deployment_namespace=None, dry_run=False):
         """
         :param use_kubeconfig:
             Use ~/.kube/config file to authenticate.
@@ -35,11 +35,19 @@ class KubernetesHelper(object):
         :param deployment_namespace:
             Target namespace to use.
             If not defined, try to get it from kubernetes built-in serviceAccount mechanism.
+        :param dry_run:
+            Dry run.
         """
         load_kubernetes_config(use_kubeconfig=use_kubeconfig)
         self.client_appsv1_api = kubernetes.client.AppsV1Api()
         self.core_api = kubernetes.client.CoreV1Api()
         self.client_custom_objects_api = kubernetes.client.CustomObjectsApi()
+
+        self.additional_arguments = dict(pretty=True)
+        self.dry_run = dry_run
+        if dry_run:
+            self.additional_arguments['dry_run'] = 'All'
+
         if deployment_namespace:
             self.deployment_namespace = deployment_namespace
         else:
@@ -51,8 +59,24 @@ class KubernetesHelper(object):
     def get_deployment_scale(self, deployment_name):
         logger.debug("Getting deployment scale for %s", deployment_name)
         return self.client_appsv1_api.read_namespaced_deployment_scale(
-            deployment_name, self.deployment_namespace, pretty="true"
+            deployment_name, self.deployment_namespace, **self.additional_arguments
         )
+
+    @retry_kubernetes_request
+    def get_statefulset_scale(self, statefulset_name):
+        logger.debug("Getting statefulset scale for %s", statefulset_name)
+        return self.client_appsv1_api.read_namespaced_stateful_set_scale(
+            statefulset_name, self.deployment_namespace, **self.additional_arguments
+        )
+
+    def scale_down_statefulset(self, statefulset_name):
+        body = self.get_statefulset_scale(statefulset_name)
+        logger.debug("Deleting all Pods for %s", statefulset_name)
+        body.spec.replicas = 0
+        self.client_appsv1_api.patch_namespaced_stateful_set_scale(
+            statefulset_name, self.deployment_namespace, body, **self.additional_arguments
+        )
+        logger.debug("Done deleting.")
 
     @retry_kubernetes_request
     def scale_down_deployment(self, deployment_name):
@@ -60,9 +84,18 @@ class KubernetesHelper(object):
         logger.debug("Deleting all Pods for %s", deployment_name)
         body.spec.replicas = 0
         self.client_appsv1_api.patch_namespaced_deployment_scale(
-            deployment_name, self.deployment_namespace, body, pretty="true"
+            deployment_name, self.deployment_namespace, body, **self.additional_arguments
         )
         logger.debug("Done deleting.")
+
+    def scale_up_statefulset(self, statefulset_name, pod_amount=1):
+        body = self.get_statefulset_scale(statefulset_name)
+        logger.debug("Recreating backend Pods for %s", statefulset_name)
+        body.spec.replicas = pod_amount
+        self.client_appsv1_api.patch_namespaced_stateful_set_scale(
+            statefulset_name, self.deployment_namespace, body, **self.additional_arguments
+        )
+        logger.debug("Done recreating.")
 
     @retry_kubernetes_request
     def scale_up_deployment(self, deployment_name, pod_amount):
@@ -70,17 +103,38 @@ class KubernetesHelper(object):
         logger.debug("Recreating backend Pods for %s", deployment_name)
         body.spec.replicas = pod_amount
         self.client_appsv1_api.patch_namespaced_deployment_scale(
-            deployment_name, self.deployment_namespace, body, pretty="true"
+            deployment_name, self.deployment_namespace, body, **self.additional_arguments
         )
         logger.debug("Done recreating.")
 
+    def is_statefulset_stopped(self, deployment_name):
+        return self.is_deployment_stopped(deployment_name, statefulset=True)
+
     @retry_kubernetes_request
-    def is_deployment_stopped(self, deployment_name):
+    def is_deployment_stopped(self, deployment_name, statefulset=False):
         logger.debug("Asking if deployment %s is stopped", deployment_name)
-        replicas = self.client_appsv1_api.read_namespaced_deployment_scale(
-            deployment_name, self.deployment_namespace, pretty="true"
-        ).status.replicas
-        return replicas == 0
+        if statefulset:
+            scale = self.client_appsv1_api.read_namespaced_stateful_set_scale(
+                deployment_name, self.deployment_namespace, **self.additional_arguments
+            )
+        else:
+            scale = self.client_appsv1_api.read_namespaced_deployment_scale(
+                deployment_name, self.deployment_namespace, **self.additional_arguments
+            )
+        logger.debug('%s has %s replicas', deployment_name, scale.status.replicas)
+        return scale.status.replicas == 0 or self.dry_run
+
+    def is_statefulset_ready(self, statefulset_name):
+        statefulset_status = self.client_appsv1_api.read_namespaced_stateful_set_status(
+            statefulset_name, self.deployment_namespace, **self.additional_arguments
+        )
+        expected_replicas = statefulset_status.spec.replicas
+        ready_replicas = statefulset_status.status.ready_replicas
+        logger.debug(
+            'StatefulSet %s has %s expected replicas and %s ready replicas',
+            statefulset_name, expected_replicas, ready_replicas
+        )
+        return expected_replicas == ready_replicas
 
     @retry_kubernetes_request
     def getPodNameFromDeployment(self, deployment_name, namespace_name):

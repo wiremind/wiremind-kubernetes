@@ -24,9 +24,12 @@ setup(
     install_requires=["kubernetes", "future"],
     extras_require={
         'dev': [
-            'nose>=1.0',
-            'mock',
             'coverage',
+            'flake8',
+            'flake8-mutable',
+            'mock',
+            'nose>=1.0',
+            'pip-tools>=3.7.0',
             'pip-tools',
         ]
     },

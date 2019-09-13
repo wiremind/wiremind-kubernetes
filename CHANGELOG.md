@@ -1,5 +1,11 @@
 # wiremind-kubernetes
 
+## 1.3.0 (2019-09-13)
+### Features
+- Add dry_run support
+- Add statefulset helpers
+
+
 ## 1.2.0 (2019-09-04)
 ### Features
 - run_command: allow to give a callback to call for each new stdout line.
