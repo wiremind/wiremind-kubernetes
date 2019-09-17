@@ -21,7 +21,10 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,
     zip_safe=True,
-    install_requires=["kubernetes", "future"],
+    install_requires=[
+        "kubernetes>=10.0.0",
+        "future"
+    ],
     extras_require={
         'dev': [
             'coverage',
