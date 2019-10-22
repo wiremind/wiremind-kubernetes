@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.3.2 (2019-10-22)
+### Fix
+- Fix dry-run for read kube methods.
+
 ## 1.3.1 (2019-09-17)
 ### Fix
 - Fix minimum version of kubernetes python lib.

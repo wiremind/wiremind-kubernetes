@@ -43,8 +43,10 @@ class KubernetesHelper(object):
         self.core_api = kubernetes.client.CoreV1Api()
         self.client_custom_objects_api = kubernetes.client.CustomObjectsApi()
 
-        self.additional_arguments = dict(pretty=True)
         self.dry_run = dry_run
+
+        self.read_additional_arguments = dict(pretty=True)
+        self.additional_arguments = self.read_additional_arguments.copy()
         if dry_run:
             self.additional_arguments['dry_run'] = 'All'
 
@@ -59,14 +61,14 @@ class KubernetesHelper(object):
     def get_deployment_scale(self, deployment_name):
         logger.debug("Getting deployment scale for %s", deployment_name)
         return self.client_appsv1_api.read_namespaced_deployment_scale(
-            deployment_name, self.deployment_namespace, **self.additional_arguments
+            deployment_name, self.deployment_namespace, **self.read_additional_arguments
         )
 
     @retry_kubernetes_request
     def get_statefulset_scale(self, statefulset_name):
         logger.debug("Getting statefulset scale for %s", statefulset_name)
         return self.client_appsv1_api.read_namespaced_stateful_set_scale(
-            statefulset_name, self.deployment_namespace, **self.additional_arguments
+            statefulset_name, self.deployment_namespace, **self.read_additional_arguments
         )
 
     def scale_down_statefulset(self, statefulset_name):
@@ -115,18 +117,18 @@ class KubernetesHelper(object):
         logger.debug("Asking if deployment %s is stopped", deployment_name)
         if statefulset:
             scale = self.client_appsv1_api.read_namespaced_stateful_set_scale(
-                deployment_name, self.deployment_namespace, **self.additional_arguments
+                deployment_name, self.deployment_namespace, **self.read_additional_arguments
             )
         else:
             scale = self.client_appsv1_api.read_namespaced_deployment_scale(
-                deployment_name, self.deployment_namespace, **self.additional_arguments
+                deployment_name, self.deployment_namespace, **self.read_additional_arguments
             )
         logger.debug('%s has %s replicas', deployment_name, scale.status.replicas)
         return scale.status.replicas == 0 or self.dry_run
 
     def is_statefulset_ready(self, statefulset_name):
         statefulset_status = self.client_appsv1_api.read_namespaced_stateful_set_status(
-            statefulset_name, self.deployment_namespace, **self.additional_arguments
+            statefulset_name, self.deployment_namespace, **self.read_additional_arguments
         )
         expected_replicas = statefulset_status.spec.replicas
         ready_replicas = statefulset_status.status.ready_replicas
