@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.3.3 (2019-10-29)
+### Fix
+- Do not silently retry/ignore when getting deployment/statefulset scale.
+
 ## 1.3.2 (2019-10-22)
 ### Fix
 - Fix dry-run for read kube methods.

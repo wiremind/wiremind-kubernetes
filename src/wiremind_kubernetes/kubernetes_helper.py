@@ -57,14 +57,12 @@ class KubernetesHelper(object):
                 "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
             ).read()
 
-    @retry_kubernetes_request
     def get_deployment_scale(self, deployment_name):
         logger.debug("Getting deployment scale for %s", deployment_name)
         return self.client_appsv1_api.read_namespaced_deployment_scale(
             deployment_name, self.deployment_namespace, **self.read_additional_arguments
         )
 
-    @retry_kubernetes_request
     def get_statefulset_scale(self, statefulset_name):
         logger.debug("Getting statefulset scale for %s", statefulset_name)
         return self.client_appsv1_api.read_namespaced_stateful_set_scale(

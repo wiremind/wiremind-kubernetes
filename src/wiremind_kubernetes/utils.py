@@ -48,7 +48,7 @@ def run_command(command, return_output=False, line_callback=None, *args, **kw_ar
 
 def retry_kubernetes_request(function):
     """
-    Decorator that retries a failed Kubernetes API request if needed
+    Decorator that retries a failed Kubernetes API request if needed and ignores 404
     """
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
