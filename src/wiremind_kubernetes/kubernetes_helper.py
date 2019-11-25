@@ -4,14 +4,11 @@ import os
 import time
 
 import kubernetes
-from future.standard_library import install_aliases
 
 from wiremind_kubernetes.exceptions import PodNotFound
 
 from .kube_config import load_kubernetes_config
 from .utils import retry_kubernetes_request
-
-install_aliases()
 
 
 logger = logging.getLogger(__name__)
@@ -245,6 +242,15 @@ class KubernetesDeploymentManager(KubernetesHelper):
                 plural="expecteddeploymentscales",
                 label_selector="release=%s" % self.release_name,
             )
+            # Support new-style labels as well
+            additional_eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
+                namespace=self.deployment_namespace,
+                group="wiremind.fr",
+                version="v1",
+                plural="expecteddeploymentscales",
+                label_selector="app.kubernetes.io/instance=%s" % self.release_name,
+            )
+            eds_list['items'].extend(additional_eds_list['items'])
         eds_dict = {
             eds['spec']['deploymentName']: eds['spec']['expectedScale'] for eds in eds_list['items']
         }

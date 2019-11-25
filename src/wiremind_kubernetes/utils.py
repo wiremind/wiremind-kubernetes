@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from future.standard_library import install_aliases
-
-install_aliases()
-
 import functools
 import logging
 import shlex

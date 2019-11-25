@@ -36,4 +36,5 @@ setup(
             'pip-tools',
         ]
     },
+    python_requires='>=3.5.0',
 )

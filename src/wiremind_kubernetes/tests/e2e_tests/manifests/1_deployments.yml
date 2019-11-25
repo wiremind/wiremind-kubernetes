@@ -4,7 +4,7 @@ metadata:
   name: concerned
   namespace: default
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: sleepy
@@ -14,10 +14,29 @@ spec:
         app: sleepy
     spec:
       containers:
-      - name: alpine
-        image: alpine
-        command: ["sleep"]
-        args: ["1000000000"]
+      - name: sleep
+        image: gcr.io/google_containers/pause-amd64:3.1
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: concerned-new-style
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleepy
+  template:
+    metadata:
+      labels:
+        app: sleepy
+    spec:
+      containers:
+      - name: sleep
+        image: gcr.io/google_containers/pause-amd64:3.1
 
 ---
 
@@ -27,7 +46,7 @@ metadata:
   name: unconcerned
   namespace: default
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: sleepy
@@ -37,7 +56,26 @@ spec:
         app: sleepy
     spec:
       containers:
-      - name: alpine
-        image: alpine
-        command: ["sleep"]
-        args: ["1000000000"]
+      - name: sleep
+        image: gcr.io/google_containers/pause-amd64:3.1
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unconcerned-new-style
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleepy
+  template:
+    metadata:
+      labels:
+        app: sleepy
+    spec:
+      containers:
+      - name: sleep
+        image: gcr.io/google_containers/pause-amd64:3.1

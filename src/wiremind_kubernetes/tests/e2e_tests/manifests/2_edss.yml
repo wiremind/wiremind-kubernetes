@@ -1,24 +1,49 @@
 apiVersion: "wiremind.fr/v1"
 kind: ExpectedDeploymentScale
 metadata:
-  name: concerned-eds
+  name: concerned
   namespace: default
   labels:
     release: concerned
 spec:
   deploymentName: concerned
-  expectedScale: 3
-
+  expectedScale: 1
 
 ---
 
 apiVersion: "wiremind.fr/v1"
 kind: ExpectedDeploymentScale
 metadata:
-  name: unconcerned-eds
+  name: concerned-new-style
+  namespace: default
+  labels:
+    app.kubernetes.io/instance: concerned
+spec:
+  deploymentName: concerned-new-style
+  expectedScale: 1
+
+---
+
+apiVersion: "wiremind.fr/v1"
+kind: ExpectedDeploymentScale
+metadata:
+  name: unconcerned
   namespace: default
   labels:
     release: unconcerned
 spec:
   deploymentName: unconcerned
-  expectedScale: 3
+  expectedScale: 1
+
+---
+
+apiVersion: "wiremind.fr/v1"
+kind: ExpectedDeploymentScale
+metadata:
+  name: unconcerned-new-style
+  namespace: default
+  labels:
+    release: unconcerned
+spec:
+  deploymentName: unconcerned
+  expectedScale: 1

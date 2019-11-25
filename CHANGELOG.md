@@ -1,5 +1,13 @@
 # wiremind-kubernetes
 
+## 2.0.0 (2019-11-25)
+### Breaking change
+- Require Python 3
+### Feature
+- Add wiremind_kubernetes.e2e_tests.helpers.check_not_using_wiremind_cluster helper function
+### Fix
+- get ExpectedDeploymentScale from either old-style label selector (release=...) or new-style (app.kubernetes.io/instance=...)
+
 ## 1.3.4 (2019-11-25)
 ### Temporary Fix
 - Kubernetes python client doesn't persist oidc tokens after refresh

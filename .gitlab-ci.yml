@@ -1,12 +1,15 @@
 include:
   - project: 'wiremind/gitlab-ci-common'
-    ref: v8.3.3
+    ref: v10.0.0
     file: 'gitlab-ci-common-libraries.yml'
 
 variables:
   EGG_NAME: wiremind-kubernetes
   PACKAGE_NAME: wiremind_kubernetes
   SRC_DIR: src
+  HELM_VERSION: v2.16.1
+  KIND_VERSION: v0.6.0
+  KUBECTL_VERSION: v1.16.0
 
 .test:
   variables:
@@ -14,22 +17,31 @@ variables:
 
 e2e-tests:
   variables:
-    E2E_T: $PACKAGE_NAME/tests/e2e_tests
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://localhost:2375
+    E2E_TESTS: $PACKAGE_NAME/tests/e2e_tests/tests
+    CLASSIC_K8S_CONFIG: '1'  # Will cause mayo to act like it was outside of kube and do not use in_cluster autoconfig
+
   tags:
     - end2end
   stage: test
-  image: "wiremind/kindindind:latest"
+  services:
+    - name: docker:18-dind
+  image: docker:18
   before_script:
-    - /usr/local/bin/dockerd-entrypoint.sh --storage-driver=overlay2 > /dev/null 2>&1 &
-    - pip3 install nose coverage
-    - pip3 install --prefer-binary -r requirements.txt --extra-index-url https://readonly:$PYPI_PASSWORD_READONLY@pypi.wiremind.fr && pip3 install -e .
+    - apk add --no-cache --update curl git build-base python3-dev libffi-dev libressl-dev musl-dev openssl bash
+
+    - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/
+    - curl -Lo kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-linux-amd64 && chmod +x kind && mv kind /usr/local/bin/
+    - curl -o /tmp/helm-$HELM_VERSION-linux-amd64.tar.gz https://storage.googleapis.com/kubernetes-helm/helm-$HELM_VERSION-linux-amd64.tar.gz && tar -zxvf /tmp/helm-$HELM_VERSION-linux-amd64.tar.gz -C /tmp && mv /tmp/linux-amd64/helm /bin/helm
+
+    - pip3 install --prefer-binary -r requirements.txt --extra-index-url https://readonly:$PYPI_PASSWORD_READONLY@pypi.wiremind.fr
+    - pip3 install -e .[dev]
   script:
     - kind create cluster
-    - export KUBECONFIG="$(kind get kubeconfig-path)"
     - kubectl get nodes
     - cd $SRC_DIR; pwd
-    - (for n in 1 2 3 4 5; do kubectl apply -f $E2E_T/manifests && break; sleep 5; done);
     - nosetests $E2E_T -v --cover-html --with-coverage --cover-tests --cover-package=$PACKAGE_NAME --cover-inclusive --cover-erase --cover-branches --cover-html-dir=coverage
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
-  only:
-    - skipped-because-fails
+  except:
+    - tags
