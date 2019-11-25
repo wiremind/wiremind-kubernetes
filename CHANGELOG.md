@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 1.3.4 (2019-11-25)
+### Temporary Fix
+- Kubernetes python client doesn't persist oidc tokens after refresh
+
 ## 1.3.3 (2019-10-29)
 ### Fix
 - Do not silently retry/ignore when getting deployment/statefulset scale.
