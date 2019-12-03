@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## X.X.X (XXXX-XX-XX)
+### Test
+- For safety reasons, even unit tests should run on isolated tests-platform executors 
+
 ## 2.0.0 (2019-11-25)
 ### Breaking change
 - Require Python 3
