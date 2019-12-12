@@ -1,8 +1,11 @@
 # wiremind-kubernetes
 
-## X.X.X (XXXX-XX-XX)
-### Test
-- For safety reasons, even unit tests should run on isolated tests-platform executors 
+## 3.0.0 (2019-12-16)
+### BREAKING CHANGES
+- KubernetesHelper moved to NamespacedKubernetesHelper, and KubernetesHelper is now a simpler helper, not namespaced.
+### Features
+- For safety reasons, even unit tests should run on isolated tests-platform executors
+- Helper function for object deletion/listing with dry_run support.
 
 ## 2.0.0 (2019-11-25)
 ### Breaking change
