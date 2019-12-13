@@ -1,3 +1,6 @@
-# -*- coding: utf-8 -*-
-from .kubernetes_helper import KubernetesHelper, KubernetesDeploymentManager  # noqa: F401
+# noqa: F401
+from .kubernetes_helper import (  # noqa: F401
+    KubernetesHelper,
+    KubernetesDeploymentManager,
+)
 from .utils import run_command  # noqa: F401

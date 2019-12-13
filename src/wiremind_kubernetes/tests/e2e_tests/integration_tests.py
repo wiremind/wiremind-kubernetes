@@ -37,7 +37,7 @@ class StartStopTest(E2ETestUnittest):
             release_name="unconcerned",
         )
 
-        for i in range(1, 10):
+        for _ in range(1, 10):
             logger.info("Waiting for deployments to be started...")
             if not (
                 self.concerned_dm.is_deployment_stopped("concerned")
@@ -51,9 +51,13 @@ class StartStopTest(E2ETestUnittest):
                 time.sleep(5)
         else:
             self.assertFalse(self.concerned_dm.is_deployment_stopped("concerned"))
-            self.assertFalse(self.concerned_dm.is_deployment_stopped("concerned-new-style"))
+            self.assertFalse(
+                self.concerned_dm.is_deployment_stopped("concerned-new-style")
+            )
             self.assertFalse(self.unconcerned_dm.is_deployment_stopped("unconcerned"))
-            self.assertFalse(self.unconcerned_dm.is_deployment_stopped("unconcerned-new-style"))
+            self.assertFalse(
+                self.unconcerned_dm.is_deployment_stopped("unconcerned-new-style")
+            )
 
     def test_stop_all(self):
         """
@@ -63,4 +67,6 @@ class StartStopTest(E2ETestUnittest):
         self.assertTrue(self.concerned_dm.is_deployment_stopped("concerned"))
         self.assertTrue(self.concerned_dm.is_deployment_stopped("concerned-new-style"))
         self.assertFalse(self.unconcerned_dm.is_deployment_stopped("unconcerned"))
-        self.assertFalse(self.unconcerned_dm.is_deployment_stopped("unconcerned-new-style"))
+        self.assertFalse(
+            self.unconcerned_dm.is_deployment_stopped("unconcerned-new-style")
+        )

@@ -9,28 +9,30 @@ logger = logging.getLogger(__name__)
 
 
 def _get_kube_config_loader_for_yaml_file_with_persistence(
-        filename, persist_config=False, **kwargs):
+    filename, persist_config=False, **kwargs
+):
 
     kcfg = kubernetes.config.kube_config.KubeConfigMerger(filename)
-    if persist_config and 'config_persister' not in kwargs:
-        kwargs['config_persister'] = lambda unused_config_value: kcfg.save_changes()
+    if persist_config and "config_persister" not in kwargs:
+        kwargs["config_persister"] = lambda unused_config_value: kcfg.save_changes()
 
     return kubernetes.config.kube_config.KubeConfigLoader(
-        config_dict=kcfg.config,
-        config_base_path=None,
-        **kwargs)
+        config_dict=kcfg.config, config_base_path=None, **kwargs
+    )
 
 
 def _load_kubeconfig():
     # persist tokens after refreshing them.
-    kubernetes.config.kube_config._get_kube_config_loader_for_yaml_file = _get_kube_config_loader_for_yaml_file_with_persistence # noqa
+    kubernetes.config.kube_config._get_kube_config_loader_for_yaml_file = (
+        _get_kube_config_loader_for_yaml_file_with_persistence
+    )  # noqa
     kubernetes.config.load_kube_config()
-    logger.debug('Kubernetes configuration successfully set.')
+    logger.debug("Kubernetes configuration successfully set.")
 
 
 def _load_incluster_config():
     kubernetes.config.load_incluster_config()
-    logger.debug('Kubernetes configuration successfully set.')
+    logger.debug("Kubernetes configuration successfully set.")
 
 
 def load_kubernetes_config(use_kubeconfig=None):

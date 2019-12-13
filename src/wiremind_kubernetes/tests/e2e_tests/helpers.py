@@ -24,7 +24,9 @@ def check_not_using_wiremind_cluster():
     ]
     hostname = urllib.parse.urlparse(api_server.lower().strip()).hostname
     if hostname not in whitelisted_api_server_hostname_list:
-        logger.info("Attempted to run tests with non-test cluster %s, abort!", api_server)
+        logger.info(
+            "Attempted to run tests with non-test cluster %s, abort!", api_server
+        )
         sys.exit(1)
 
 

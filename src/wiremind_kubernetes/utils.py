@@ -33,7 +33,7 @@ def run_command(command, return_output=False, line_callback=None, *args, **kw_ar
     if return_output:
         out, err = process.communicate()
     else:
-        for line in iter(process.stdout.readline, ''):
+        for line in iter(process.stdout.readline, ""):
             line_callback(line.strip())
         process.wait()
     if process.returncode:
@@ -46,6 +46,7 @@ def retry_kubernetes_request(function):
     """
     Decorator that retries a failed Kubernetes API request if needed and ignores 404
     """
+
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
         try:
@@ -67,11 +68,16 @@ def retry_kubernetes_request(function):
 def kubernetes_exec(commands, api, pod_name, namespace_name, container_name=None):
     logger.info('Connecting to "%s" pod from "%s" namespace', pod_name, namespace_name)
     resp = kubernetes.stream.stream(
-        api.connect_get_namespaced_pod_exec, pod_name, namespace_name,
-        command=['/bin/sh'],
+        api.connect_get_namespaced_pod_exec,
+        pod_name,
+        namespace_name,
+        command=["/bin/sh"],
         container=container_name,
-        stderr=True, stdin=True, stdout=True, tty=False,
-        _preload_content=False
+        stderr=True,
+        stdin=True,
+        stdout=True,
+        tty=False,
+        _preload_content=False,
     )
 
     while resp.is_open():
@@ -81,7 +87,7 @@ def kubernetes_exec(commands, api, pod_name, namespace_name, container_name=None
         if resp.peek_stderr():
             error_message = resp.read_stderr()
             logger.error(error_message)
-            if 'FATAL' in error_message or 'ERROR' in error_message:
+            if "FATAL" in error_message or "ERROR" in error_message:
                 raise ExecError()
         if commands:
             c = commands.pop(0)
