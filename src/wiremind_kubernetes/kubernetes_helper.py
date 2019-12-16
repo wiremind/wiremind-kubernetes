@@ -47,9 +47,12 @@ class KubernetesHelper:
 
         self.dry_run = dry_run
 
+        # Every read request have those arguments added
         self.read_additional_arguments = dict(pretty=True)
+        # Every request, either read or write, have those arguments added
         self.additional_arguments = self.read_additional_arguments.copy()
         if dry_run:
+            # Dry run, in kube API, is not true or false, but either dry_run: All or not defined.
             self.additional_arguments["dry_run"] = "All"
 
     def delete_resource(self, resource_name, resource_namespace, delete_function):
