@@ -4,10 +4,7 @@ import subprocess
 import time
 
 import wiremind_kubernetes
-from wiremind_kubernetes.tests.e2e_tests.helpers import (
-    check_not_using_wiremind_cluster,
-    E2ETestUnittest,
-)
+from wiremind_kubernetes.tests.e2e_tests.helpers import E2ETestUnittest
 
 E2E_CLUSTER_MANIFESTS = "tests/e2e_tests/manifests"
 logger = logging.getLogger(__name__)
@@ -18,7 +15,6 @@ absolute_path = os.path.dirname(
 
 class StartStopTest(E2ETestUnittest):
     def setUp(self):
-        check_not_using_wiremind_cluster()
         subprocess.check_output(
             "(for n in 1 2 3 4 5; do kubectl apply -f {}/{} &&"
             " break; sleep 1; done);".format(absolute_path, E2E_CLUSTER_MANIFESTS),

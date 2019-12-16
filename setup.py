@@ -17,13 +17,12 @@ setup(
     author_email="dev@wiremind.fr",
     url="https://gitlab.cayzn.com/wiremind/common/wiremind-kubernetes.git",
     license="Proprietary",
-    packages=find_packages("src", exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
     zip_safe=True,
     install_requires=[
         "kubernetes>=10.0.0",
-        "future"
     ],
     extras_require={
         'dev': [
@@ -32,6 +31,10 @@ setup(
             'flake8-mutable',
             'mock',
             'nose>=1.0',
+            'pytest',
+            # 1.13 (through https://github.com/pytest-dev/pytest-mock/commit/7bddcd53d287a59150d22e6496bcf20af44c3378)
+            # broke our tests
+            'pytest-mock==1.12.1',
             'pip-tools>=3.7.0',
             'pip-tools',
         ]

@@ -6,6 +6,7 @@
 ### Features
 - For safety reasons, even unit tests should run on isolated tests-platform executors
 - Helper function for object deletion/listing with dry_run support.
+- Helper function for setting up e2e cluster.
 
 ## 2.0.0 (2019-11-25)
 ### Breaking change

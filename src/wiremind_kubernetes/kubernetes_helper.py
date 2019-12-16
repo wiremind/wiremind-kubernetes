@@ -57,9 +57,7 @@ class KubernetesHelper:
 
     def delete_resource(self, resource_name, resource_namespace, delete_function):
         return delete_function(
-            resource_name,
-            resource_namespace,
-            **self.additional_arguments,
+            resource_name, resource_namespace, **self.additional_arguments
         )
 
     def delete_pod(self, pod_name, pod_namespace):
@@ -84,6 +82,18 @@ class KubernetesHelper:
             secret_name,
             secret_namespace,
             self.client_corev1_api.delete_namespaced_secret,
+        )
+
+    def delete_deployment(self, deployment_name, deployment_namespace):
+        return self.delete_resource(
+            deployment_name,
+            deployment_namespace,
+            self.client_appsv1_api.delete_namespaced_deployment,
+        )
+
+    def list_deployment(self, **kwargs):
+        return self.client_appsv1_api.list_deployment_for_all_namespaces(
+            **kwargs, **self.read_additional_arguments
         )
 
     def list_pod(self, **kwargs):
@@ -145,7 +155,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         return self.client_appsv1_api.read_namespaced_stateful_set_scale(
             statefulset_name,
             self.deployment_namespace,
-            **self.read_additional_arguments
+            **self.read_additional_arguments,
         )
 
     def scale_down_statefulset(self, statefulset_name):
@@ -156,7 +166,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             statefulset_name,
             self.deployment_namespace,
             body,
-            **self.additional_arguments
+            **self.additional_arguments,
         )
         logger.debug("Done deleting.")
 
@@ -169,7 +179,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             deployment_name,
             self.deployment_namespace,
             body,
-            **self.additional_arguments
+            **self.additional_arguments,
         )
         logger.debug("Done deleting.")
 
@@ -181,7 +191,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             statefulset_name,
             self.deployment_namespace,
             body,
-            **self.additional_arguments
+            **self.additional_arguments,
         )
         logger.debug("Done recreating.")
 
@@ -194,7 +204,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             deployment_name,
             self.deployment_namespace,
             body,
-            **self.additional_arguments
+            **self.additional_arguments,
         )
         logger.debug("Done recreating.")
 
@@ -208,13 +218,13 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             scale = self.client_appsv1_api.read_namespaced_stateful_set_scale(
                 deployment_name,
                 self.deployment_namespace,
-                **self.read_additional_arguments
+                **self.read_additional_arguments,
             )
         else:
             scale = self.client_appsv1_api.read_namespaced_deployment_scale(
                 deployment_name,
                 self.deployment_namespace,
-                **self.read_additional_arguments
+                **self.read_additional_arguments,
             )
         logger.debug("%s has %s replicas", deployment_name, scale.status.replicas)
         return scale.status.replicas == 0 or self.dry_run
@@ -223,7 +233,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         statefulset_status = self.client_appsv1_api.read_namespaced_stateful_set_status(
             statefulset_name,
             self.deployment_namespace,
-            **self.read_additional_arguments
+            **self.read_additional_arguments,
         )
         expected_replicas = statefulset_status.spec.replicas
         ready_replicas = statefulset_status.status.ready_replicas
