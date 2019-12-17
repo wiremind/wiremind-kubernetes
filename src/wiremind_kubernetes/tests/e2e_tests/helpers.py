@@ -7,8 +7,6 @@ import kubernetes
 import pytest
 import unittest
 
-from wiremind_kubernetes.utils import run_command
-
 logger = logging.getLogger(__name__)
 
 
@@ -42,12 +40,20 @@ def get_k8s_username():
     """
     Return the Kind cluster's username.
     """
-    command = "kubectl config view -o jsonpath='{.users[0].name}'"
+    command = """kubectl config view -o json | jq '. as $o
+    | ."current-context" as $current_context_name
+    | $o.contexts[] | select(.name == $current_context_name) as $context
+    | $o.users[] | select(.name == $context.context.user) as $user
+    | $user.name'"""
     # dex-k8s-authenticator sets the user to: user={{ .Username}}-{{.ClusterName }}`
     # https://github.com/mintel/dex-k8s-authenticator/blob/master/templates/linux-mac-common.html#L101
-    username = run_command(command, return_output=True)[0].strip().split("-")[0]
+    username = (
+        subprocess.check_output(command, shell=True, universal_newlines=True)
+        .replace('"', "")
+        .strip()
+        .split("-")[0]
+    )
     assert username
-
     return username
 
 

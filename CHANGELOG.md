@@ -3,6 +3,7 @@
 ## 3.0.1 (2019-12-17)
 ### Fixes
 - e2e tests: delegate to gitlab-ci-common >= 10.1.1 configuration of calico.
+- e2e tests: fix get_k8s_username.
 
 ## 3.0.0 (2019-12-16)
 ### BREAKING CHANGES
