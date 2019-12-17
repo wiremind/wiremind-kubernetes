@@ -1,21 +1,12 @@
 include:
   - project: 'wiremind/gitlab-ci-common'
-    ref: 'v10.1.0'
+    ref: 'helm3'
     file: 'gitlab-ci-common-platform.yml'
 
 variables:
   EGG_NAME: wiremind-kubernetes
   PACKAGE_NAME: wiremind_kubernetes
   SRC_DIR: src
-  HELM_VERSION: v2.16.1
-  KIND_VERSION: v0.6.1
-  KUBECTL_VERSION: v1.16.0
-
-.test:
-  variables:
-    SRC_DIR: src/$PACKAGE_NAME/tests/unit_tests
-  tags:
-    - tests-platform
 
 e2e-tests:
   extends: .platform-e2e-test

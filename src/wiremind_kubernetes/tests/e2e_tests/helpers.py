@@ -48,19 +48,6 @@ def get_k8s_username():
 
     return username
 
-
-def set_up_calico_networking_plugin_if_kind():
-    current_context = subprocess.check_output("kubectl config current-context | tr -d ' '",
-                                              shell=True, universal_newlines=True)
-    if "kind" not in current_context:
-        return
-
-    subprocess.check_output("kubectl apply --overwrite=false "
-                            "-f https://docs.projectcalico.org/v3.8/manifests/calico.yaml",
-                            shell=True, universal_newlines=True)
-    logger.info("[CLUSTER-CONFIG]: Calico has been set up")
-
-
 @pytest.fixture(scope='function')
 def k8s_client_request_function(mocker):
     yield mocker.spy(kubernetes.client.api_client.ApiClient, 'request')
@@ -69,11 +56,9 @@ def k8s_client_request_function(mocker):
 @pytest.fixture(scope='session', autouse=True)
 def setUpE2E():
     check_not_using_wiremind_cluster()
-    set_up_calico_networking_plugin_if_kind()
 
 
 class E2ETestUnittest(unittest.TestCase):  # For projects that still use unittest/nosetest
     @classmethod
     def setUpClass(cls):
         check_not_using_wiremind_cluster()
-        set_up_calico_networking_plugin_if_kind()

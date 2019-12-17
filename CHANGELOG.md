@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## 3.0.1 (2019-12-17)
+### Fixes
+- e2e tests: delegate to gitlab-ci-common >= 10.1.1 configuration of calico.
+
 ## 3.0.0 (2019-12-16)
 ### BREAKING CHANGES
 - KubernetesHelper moved to NamespacedKubernetesHelper, and KubernetesHelper is now a simpler helper, not namespaced.
