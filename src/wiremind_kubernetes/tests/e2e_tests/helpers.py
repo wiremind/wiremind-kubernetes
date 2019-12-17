@@ -16,7 +16,9 @@ def check_not_using_wiremind_cluster():
     """
     Will sys.exit(1) if kubectl current context api server is not a test cluster (like kind, minikube, etc)
     """
-    logger.info("[CLUSTER-CONFIG]: Make sure the tests are not running against the main cluster")
+    logger.info(
+        "[CLUSTER-CONFIG]: Make sure the tests are not running against the main cluster"
+    )
 
     api_server = subprocess.check_output(
         "kubectl config view --minify | grep server | cut -f 2- -d ':' | tr -d ' '",
@@ -43,22 +45,25 @@ def get_k8s_username():
     command = "kubectl config view -o jsonpath='{.users[0].name}'"
     # dex-k8s-authenticator sets the user to: user={{ .Username}}-{{.ClusterName }}`
     # https://github.com/mintel/dex-k8s-authenticator/blob/master/templates/linux-mac-common.html#L101
-    username = run_command(command, return_output=True)[0].strip().split('-')[0]
+    username = run_command(command, return_output=True)[0].strip().split("-")[0]
     assert username
 
     return username
 
-@pytest.fixture(scope='function')
+
+@pytest.fixture(scope="function")
 def k8s_client_request_function(mocker):
-    yield mocker.spy(kubernetes.client.api_client.ApiClient, 'request')
+    yield mocker.spy(kubernetes.client.api_client.ApiClient, "request")
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def setUpE2E():
     check_not_using_wiremind_cluster()
 
 
-class E2ETestUnittest(unittest.TestCase):  # For projects that still use unittest/nosetest
+class E2ETestUnittest(
+    unittest.TestCase
+):  # For projects that still use unittest/nosetest
     @classmethod
     def setUpClass(cls):
         check_not_using_wiremind_cluster()

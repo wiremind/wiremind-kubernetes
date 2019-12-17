@@ -1,6 +1,6 @@
 include:
   - project: 'wiremind/gitlab-ci-common'
-    ref: 'helm3'
+    ref: 'v10.1.1'
     file: 'gitlab-ci-common-platform.yml'
 
 variables:
