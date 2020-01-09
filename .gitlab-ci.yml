@@ -1,6 +1,6 @@
 include:
   - project: 'wiremind/gitlab-ci-common'
-    ref: 'v10.1.1'
+    ref: 'master'
     file: 'gitlab-ci-common-platform.yml'
 
 variables:
