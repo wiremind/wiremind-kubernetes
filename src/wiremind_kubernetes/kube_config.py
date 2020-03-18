@@ -24,8 +24,8 @@ def _get_kube_config_loader_for_yaml_file_with_persistence(
 def _load_kubeconfig():
     # persist tokens after refreshing them.
     kubernetes.config.kube_config._get_kube_config_loader_for_yaml_file = (
-        _get_kube_config_loader_for_yaml_file_with_persistence
-    )  # noqa
+        _get_kube_config_loader_for_yaml_file_with_persistence  # noqa
+    )
     kubernetes.config.load_kube_config()
     logger.debug("Kubernetes configuration successfully set.")
 

@@ -1,5 +1,13 @@
 # wiremind-kubernetes
 
+## 4.0.0 (Unreleased)
+### Breaking changes
+- NamespacedKubernetesHelper: rename `deployment_namespace` init argument and instance member to `namespace`
+- NamespacedKubernetesHelper: rename `is_statefulset_ready` to `is_deployment_ready` with `statefulset=True` parameter
+- E2eTests: move `setUpE2E` to `wiremind_kubernetes.tests.e2e_tests.conftest`
+### Features
+- KubernetesDeploymentManager: add create_job method.
+
 ## 3.0.1 (2019-12-17)
 ### Fixes
 - e2e tests: delegate to gitlab-ci-common >= 10.1.1 configuration of calico.

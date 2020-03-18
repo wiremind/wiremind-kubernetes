@@ -3,10 +3,6 @@ import subprocess
 import sys
 import urllib
 
-import kubernetes
-import pytest
-import unittest
-
 logger = logging.getLogger(__name__)
 
 
@@ -55,21 +51,3 @@ def get_k8s_username():
     )
     assert username
     return username
-
-
-@pytest.fixture(scope="function")
-def k8s_client_request_function(mocker):
-    yield mocker.spy(kubernetes.client.api_client.ApiClient, "request")
-
-
-@pytest.fixture(scope="session", autouse=True)
-def setUpE2E():
-    check_not_using_wiremind_cluster()
-
-
-class E2ETestUnittest(
-    unittest.TestCase
-):  # For projects that still use unittest/nosetest
-    @classmethod
-    def setUpClass(cls):
-        check_not_using_wiremind_cluster()

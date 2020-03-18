@@ -1,12 +1,31 @@
 include:
   - project: 'wiremind/gitlab-ci-common'
     ref: 'master'
-    file: 'gitlab-ci-common-platform.yml'
+    file: 'abstract.yml'
+  - project: 'wiremind/gitlab-ci-common'
+    ref: 'master'
+    file: 'libraries/platform.yml'
 
 variables:
   EGG_NAME: wiremind-kubernetes
   PACKAGE_NAME: wiremind_kubernetes
   SRC_DIR: src
+  WIREMIND_PYTHON_IMAGE: python:3.7
+
+conventional-commits:
+  allow_failure: true
 
 e2e-tests:
+  variables:
+    SRC_DIR: src/$PACKAGE_NAME/tests/e2e_tests
+    E2E_TESTS: "" # keep empty
   extends: .platform-e2e-test
+  script:
+    - pytest --verbose .
+
+.test:
+  # Note: Extends abstract.yml
+  variables:
+    TEST_DIR: src/$PACKAGE_NAME/tests/unit_tests
+  script:
+    - pytest --verbose .

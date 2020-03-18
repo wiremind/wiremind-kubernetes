@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: concerned
-  namespace: default
 spec:
   replicas: 1
   selector:
@@ -23,7 +22,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: concerned-new-style
-  namespace: default
 spec:
   replicas: 1
   selector:
@@ -44,7 +42,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: unconcerned
-  namespace: default
 spec:
   replicas: 1
   selector:
@@ -65,7 +62,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: unconcerned-new-style
-  namespace: default
 spec:
   replicas: 1
   selector:
