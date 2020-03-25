@@ -1,45 +1,58 @@
-# -*- coding: utf-8 -*-
 import functools
 import logging
 import shlex
 import subprocess
 import time
+from typing import Callable, List, Union
 
 import kubernetes
-
 from wiremind_kubernetes.exceptions import ExecError
-
 
 logger = logging.getLogger(__name__)
 
 
-def run_command(command, return_output=False, line_callback=None, *args, **kw_args):
+def run_command(
+    command: Union[List, str],
+    return_result: bool = False,
+    line_callback: Union[Callable, None] = None,
+    **kw_args
+):
     """
     Run command, print stdout/stderr, check that command exited correctly, return stdout/err
     """
     logger.info("Running %s", command)
-    if isinstance(command, str):
-        command = shlex.split(command)
+    if line_callback and return_result:
+        raise ValueError(
+            "line_callback and return_result parameters are mutually incompatible."
+        )
+
     if not line_callback:
         line_callback = logger.info
-    process = subprocess.Popen(
-        command,
-        *args,
+
+    interpreted_command: List[str]
+    if isinstance(command, str):
+        interpreted_command = shlex.split(command)
+    else:
+        interpreted_command = command
+
+    process = subprocess.Popen(  # type: ignore
+        interpreted_command,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         universal_newlines=True,
         **kw_args
     )
-    if return_output:
+
+    if return_result:
         out, err = process.communicate()
-    else:
-        for line in iter(process.stdout.readline, ""):
-            line_callback(line.strip())
-        process.wait()
+        return (out, err, process.returncode)
+
+    for line in iter(process.stdout.readline, ""):
+        line_callback(line.strip())
+    process.wait()
+
     if process.returncode:
         raise subprocess.CalledProcessError(process.returncode, command)
-    if return_output:
-        return (out, err)
 
 
 def retry_kubernetes_request(function):

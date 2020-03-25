@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import logging
 import os
 import time
@@ -19,7 +18,12 @@ class KubernetesHelper:
     A simple helper for Kubernetes manipulation.
     """
 
-    def __init__(self, use_kubeconfig: bool = False, dry_run: bool = False, should_load_kubernetes_config: bool = True):
+    def __init__(
+        self,
+        use_kubeconfig: bool = False,
+        dry_run: bool = False,
+        should_load_kubernetes_config: bool = True,
+    ):
         """
         :param use_kubeconfig:
             Use ~/.kube/config file to authenticate.
