@@ -19,7 +19,7 @@ class KubernetesHelper:
     A simple helper for Kubernetes manipulation.
     """
 
-    def __init__(self, use_kubeconfig: bool = False, dry_run: bool = False):
+    def __init__(self, use_kubeconfig: bool = False, dry_run: bool = False, should_load_kubernetes_config: bool = True):
         """
         :param use_kubeconfig:
             Use ~/.kube/config file to authenticate.
@@ -27,8 +27,12 @@ class KubernetesHelper:
             Defaults to False.
         :param dry_run:
             Dry run.
+        :param should_load_kubernetes_config:
+            if true, will call load_kubernetes_config(use_kubeconfig)
+            Defaults to True.
         """
-        load_kubernetes_config(use_kubeconfig=use_kubeconfig)
+        if should_load_kubernetes_config:
+            load_kubernetes_config(use_kubeconfig=use_kubeconfig)
         self.client_appsv1_api: kubernetes.client.AppsV1Api = kubernetes.client.AppsV1Api()
         self.client_corev1_api: kubernetes.client.CoreV1Api = kubernetes.client.CoreV1Api()
         self.client_batchv1_api: kubernetes.client.BatchV1Api = kubernetes.client.BatchV1Api()

@@ -7,6 +7,7 @@
 - E2eTests: move `setUpE2E` to `wiremind_kubernetes.tests.e2e_tests.conftest`
 ### Features
 - KubernetesDeploymentManager: add create_job method.
+- KubernetesHelper: add should_load_kubernetes_config parameter to init.
 
 ## 3.0.1 (2019-12-17)
 ### Fixes
