@@ -9,6 +9,8 @@
 ### Features
 - KubernetesDeploymentManager: add create_job method.
 - KubernetesHelper: add should_load_kubernetes_config parameter to init.
+### Fixes
+- Remove _get_kube_config_loader_for_yaml_file_with_persistence monkey-patch, no longer needed with kubernetes-python 11.x.x.
 
 ## 3.0.1 (2019-12-17)
 ### Fixes
