@@ -11,8 +11,10 @@ def test_create_job(concerned_dm, create_namespace):
     Test that default create job works as expected
     """
     job_name = "my-test-job"
-    concerned_dm.create_job(job_name=job_name, container_image="gcr.io/google_containers/pause-amd64:3.1")
-    for _ in range(1, 10):
+    concerned_dm.create_job(
+        concerned_dm.generate_job(job_name=job_name, container_image="gcr.io/google_containers/pause-amd64:3.1")
+    )
+    for _ in range(1, 20):
         created_job = concerned_dm.client_batchv1_api.read_namespaced_job(
             concerned_dm.release_name + "-" + job_name, TEST_NAMESPACE
         )
@@ -30,10 +32,12 @@ def test_create_job_argument(concerned_dm, create_namespace):
     """
     job_name = "my-test-job"
     concerned_dm.create_job(
-        job_name=job_name, container_image="alpine:latest", command="sh", args=["-c", "true"],
+        concerned_dm.generate_job(
+            job_name=job_name, container_image="alpine:latest", command="sh", args=["-c", "true"],
+        )
     )
 
-    for _ in range(1, 10):
+    for _ in range(1, 20):
         created_job = concerned_dm.client_batchv1_api.read_namespaced_job(
             concerned_dm.release_name + "-" + job_name, TEST_NAMESPACE
         )

@@ -317,7 +317,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         logger.debug("List is %s", eds_dict)
         return eds_dict
 
-    def create_job(
+    def generate_job(
         self,
         job_name: str,
         container_image: str,
@@ -325,14 +325,14 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         args: Union[List[str], None] = None,
         environment_variables: Union[Dict["str", "str"], None] = None,
         ttl_seconds_after_finished: int = 1800,
-    ):
+    ) -> kubernetes.client.V1Job:
         job_name = f"{self.release_name}-{job_name}"
         if environment_variables is None:
             environment_variables = {}
 
-        body = kubernetes.client.V1Job(api_version="batch/v1", kind="Job")
-        body.metadata = kubernetes.client.V1ObjectMeta(namespace=self.namespace, name=job_name)
-        body.status = kubernetes.client.V1JobStatus()
+        job_body = kubernetes.client.V1Job(api_version="batch/v1", kind="Job")
+        job_body.metadata = kubernetes.client.V1ObjectMeta(namespace=self.namespace, name=job_name)
+        job_body.status = kubernetes.client.V1JobStatus()
         template: kubernetes.client.V1PodTemplate = kubernetes.client.V1PodTemplate()
         template.template = kubernetes.client.V1PodTemplateSpec()
         env_list = []
@@ -344,12 +344,14 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         if args:
             container.args = args
         template.template.spec = kubernetes.client.V1PodSpec(containers=[container], restart_policy="Never")
-        body.spec = kubernetes.client.V1JobSpec(
+        job_body.spec = kubernetes.client.V1JobSpec(
             ttl_seconds_after_finished=ttl_seconds_after_finished, template=template.template,
         )
 
+        return job_body
+
+    def create_job(self, job_body: kubernetes.client.V1Job) -> kubernetes.client.V1Job:
         try:
-            self.client_batchv1_api.create_namespaced_job(self.namespace, body, **self.additional_arguments)
+            return self.client_batchv1_api.create_namespaced_job(self.namespace, job_body, **self.additional_arguments)
         except kubernetes.client.rest.ApiException as e:
             print("Exception when calling BatchV1Api->create_namespaced_job: %s\n" % e)
-        return
