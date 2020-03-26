@@ -7,17 +7,13 @@ import kubernetes
 logger = logging.getLogger(__name__)
 
 
-def _get_kube_config_loader_for_yaml_file_with_persistence(
-    filename, persist_config=False, **kwargs
-):
+def _get_kube_config_loader_for_yaml_file_with_persistence(filename, persist_config=False, **kwargs):
 
     kcfg = kubernetes.config.kube_config.KubeConfigMerger(filename)
     if persist_config and "config_persister" not in kwargs:
         kwargs["config_persister"] = lambda unused_config_value: kcfg.save_changes()
 
-    return kubernetes.config.kube_config.KubeConfigLoader(
-        config_dict=kcfg.config, config_base_path=None, **kwargs
-    )
+    return kubernetes.config.kube_config.KubeConfigLoader(config_dict=kcfg.config, config_base_path=None, **kwargs)
 
 
 def _load_kubeconfig():

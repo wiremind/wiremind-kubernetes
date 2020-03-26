@@ -10,9 +10,7 @@ def check_not_using_wiremind_cluster():
     """
     Will sys.exit(1) if kubectl current context api server is not a test cluster (like kind, minikube, etc)
     """
-    logger.info(
-        "[CLUSTER-CONFIG]: Make sure the tests are not running against the main cluster"
-    )
+    logger.info("[CLUSTER-CONFIG]: Make sure the tests are not running against the main cluster")
 
     api_server = subprocess.check_output(
         "kubectl config view --minify | grep server | cut -f 2- -d ':' | tr -d ' '",
@@ -26,9 +24,7 @@ def check_not_using_wiremind_cluster():
     ]
     hostname = urllib.parse.urlparse(api_server.lower().strip()).hostname
     if hostname not in whitelisted_api_server_hostname_list:
-        logger.error(
-            "Attempted to run tests with non-test cluster %s, abort!", api_server
-        )
+        logger.error("Attempted to run tests with non-test cluster %s, abort!", api_server)
         sys.exit(1)
 
 
@@ -44,10 +40,7 @@ def get_k8s_username():
     # dex-k8s-authenticator sets the user to: user={{ .Username}}-{{.ClusterName }}`
     # https://github.com/mintel/dex-k8s-authenticator/blob/master/templates/linux-mac-common.html#L101
     username = (
-        subprocess.check_output(command, shell=True, universal_newlines=True)
-        .replace('"', "")
-        .strip()
-        .split("-")[0]
+        subprocess.check_output(command, shell=True, universal_newlines=True).replace('"', "").strip().split("-")[0]
     )
     assert username
     return username

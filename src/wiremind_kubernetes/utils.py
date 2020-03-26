@@ -12,19 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 def run_command(
-    command: Union[List, str],
-    return_result: bool = False,
-    line_callback: Union[Callable, None] = None,
-    **kw_args
+    command: Union[List, str], return_result: bool = False, line_callback: Union[Callable, None] = None, **kw_args
 ):
     """
     Run command, print stdout/stderr, check that command exited correctly, return stdout/err
     """
     logger.info("Running %s", command)
     if line_callback and return_result:
-        raise ValueError(
-            "line_callback and return_result parameters are mutually incompatible."
-        )
+        raise ValueError("line_callback and return_result parameters are mutually incompatible.")
 
     if not line_callback:
         line_callback = logger.info
@@ -36,11 +31,7 @@ def run_command(
         interpreted_command = command
 
     process = subprocess.Popen(  # type: ignore
-        interpreted_command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True,
-        **kw_args
+        interpreted_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, **kw_args
     )
 
     if return_result:
