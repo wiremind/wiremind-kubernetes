@@ -16,16 +16,10 @@ conventional-commits:
   allow_failure: true
 
 e2e-tests:
-  variables:
-    SRC_DIR: src/$PACKAGE_NAME/tests/e2e_tests
-    E2E_TESTS: "" # keep empty
   extends: .platform-e2e-test
-  script:
-    - pytest --verbose .
+
 
 .test:
   # Note: Extends abstract.yml
   variables:
     TEST_DIR: src/$PACKAGE_NAME/tests/unit_tests
-  script:
-    - pytest --verbose .
