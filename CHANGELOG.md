@@ -6,6 +6,7 @@
 - NamespacedKubernetesHelper: rename `is_statefulset_ready` to `is_deployment_ready` with `statefulset=True` parameter
 - E2eTests: move `setUpE2E` to `wiremind_kubernetes.tests.e2e_tests.conftest`
 - run_command: replace return_output parameter to return_result that does NO longer raise in cse of error, but returns out, err and returncode.
+- KubernetesDeploymentManager: release_name __init__ argument is now mandatory.
 ### Features
 - KubernetesDeploymentManager: add create_job method.
 - KubernetesHelper: add should_load_kubernetes_config parameter to init.

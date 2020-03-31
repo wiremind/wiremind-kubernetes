@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from typing import Any, Dict, List, Union
 
@@ -87,6 +86,10 @@ class KubernetesHelper:
         return self.client_corev1_api.list_secret_for_all_namespaces(**kwargs, **self.read_additional_arguments)
 
 
+def _get_namespace_from_kube() -> str:
+    return open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read()
+
+
 class NamespacedKubernetesHelper(KubernetesHelper):
     """
     A simple helper for Kubernetes manipulation.
@@ -110,7 +113,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         if namespace:
             self.namespace = namespace
         else:
-            self.namespace = open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read()
+            self.namespace = _get_namespace_from_kube()
 
     def get_deployment_scale(self, deployment_name: str):
         logger.debug("Getting deployment scale for %s", deployment_name)
@@ -235,11 +238,8 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
     a.start_pods()
     """
 
-    def __init__(self, release_name=None, **kwargs):
-        if release_name:
-            self.release_name = release_name
-        else:
-            self.release_name = os.environ.get("RELEASE_NAME")
+    def __init__(self, release_name: str, **kwargs):
+        self.release_name = release_name
         super().__init__(**kwargs)
 
     def start_pods(self):
