@@ -26,6 +26,11 @@ def load_kubernetes_config(use_kubeconfig=None):
         If None, will try to load built-in incluster mechanism, then try config file.
         Defaults to None.
     """
+    if os.environ["CLASSIC_K8S_CONFIG"]:
+        # We are in a Kind cluster for E2E test! Never use in cluster config.
+        _load_kubeconfig()
+        return
+
     if use_kubeconfig is True:
         _load_kubeconfig()
     if use_kubeconfig is False:
