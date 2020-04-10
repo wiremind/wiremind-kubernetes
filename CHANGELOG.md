@@ -1,6 +1,6 @@
 # wiremind-kubernetes
 
-## 4.0.0 (Unreleased)
+## v4.0.0 (2020-04-10)
 ### Breaking changes
 - NamespacedKubernetesHelper: rename `deployment_namespace` init argument and instance member to `namespace`
 - NamespacedKubernetesHelper: rename `is_statefulset_ready` to `is_deployment_ready` with `statefulset=True` parameter
