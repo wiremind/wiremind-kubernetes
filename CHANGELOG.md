@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v4.1.0 (2020-04-10)
+### Features:
+- create_job: support for labels.
+
 ## v4.0.0 (2020-04-10)
 ### Breaking changes
 - NamespacedKubernetesHelper: rename `deployment_namespace` init argument and instance member to `namespace`

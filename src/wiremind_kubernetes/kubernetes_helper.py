@@ -321,34 +321,47 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         self,
         job_name: str,
         container_image: str,
+        labels: Dict[str, str],
         command: Union[str, None] = None,
         args: Union[List[str], None] = None,
         environment_variables: Union[Dict["str", "str"], None] = None,
         ttl_seconds_after_finished: int = 1800,
     ) -> kubernetes.client.V1Job:
+        """
+        Generate a job object.
+        Note that label is mandatory since everything created in the cluster should have labels
+        allowing for automatic deletion or garbage collection.
+        """
         job_name = f"{self.release_name}-{job_name}"
         if environment_variables is None:
             environment_variables = {}
 
-        job_body = kubernetes.client.V1Job(api_version="batch/v1", kind="Job")
-        job_body.metadata = kubernetes.client.V1ObjectMeta(namespace=self.namespace, name=job_name)
-        job_body.status = kubernetes.client.V1JobStatus()
-        template: kubernetes.client.V1PodTemplate = kubernetes.client.V1PodTemplate()
-        template.template = kubernetes.client.V1PodTemplateSpec()
-        env_list = []
-        for env_name, env_value in environment_variables.items():
-            env_list.append(kubernetes.client.V1EnvVar(name=env_name, value=env_value))
-        container = kubernetes.client.V1Container(name="wiremind", image=container_image, env=env_list)
+        job = kubernetes.client.V1Job(api_version="batch/v1", kind="Job")
+
+        job_metadata = kubernetes.client.V1ObjectMeta(namespace=self.namespace, name=job_name)
+        job_metadata.labels = labels
+        job.metadata = job_metadata
+
+        job.status = kubernetes.client.V1JobStatus()
+
+        container = kubernetes.client.V1Container(name="wiremind", image=container_image)
         if command:
             container.command = [command]
         if args:
             container.args = args
-        template.template.spec = kubernetes.client.V1PodSpec(containers=[container], restart_policy="Never")
-        job_body.spec = kubernetes.client.V1JobSpec(
-            ttl_seconds_after_finished=ttl_seconds_after_finished, template=template.template,
+        env_list = []
+        for env_name, env_value in environment_variables.items():
+            env_list.append(kubernetes.client.V1EnvVar(name=env_name, value=env_value))
+        container.env = env_list
+
+        pod_template_spec = kubernetes.client.V1PodTemplateSpec()
+        pod_template_spec.spec = kubernetes.client.V1PodSpec(containers=[container], restart_policy="Never")
+
+        job.spec = kubernetes.client.V1JobSpec(
+            ttl_seconds_after_finished=ttl_seconds_after_finished, template=pod_template_spec,
         )
 
-        return job_body
+        return job
 
     def create_job(self, job_body: kubernetes.client.V1Job) -> kubernetes.client.V1Job:
         try:
