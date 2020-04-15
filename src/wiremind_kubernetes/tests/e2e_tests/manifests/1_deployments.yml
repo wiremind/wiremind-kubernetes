@@ -7,14 +7,87 @@ spec:
   selector:
     matchLabels:
       app: sleepy
+      component: concerned
   template:
     metadata:
       labels:
         app: sleepy
+        component: concerned
     spec:
       containers:
       - name: sleep
         image: gcr.io/google_containers/pause-amd64:3.1
+      terminationGracePeriodSeconds: 1
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: concerned-high-priority
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleepy
+      component: concerned-high-priority
+  template:
+    metadata:
+      labels:
+        app: sleepy
+        component: concerned-high-priority
+    spec:
+      containers:
+      - name: sleep
+        image: gcr.io/google_containers/pause-amd64:3.1
+      terminationGracePeriodSeconds: 1
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: concerned-very-high-priority
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleepy
+      component: concerned-very-high-priority
+  template:
+    metadata:
+      labels:
+        app: sleepy
+        component: concerned-very-high-priority
+    spec:
+      containers:
+      - name: sleep
+        image: gcr.io/google_containers/pause-amd64:3.1
+      terminationGracePeriodSeconds: 1
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: concerned-low-priority
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleepy
+      component: concerned-low-priority
+  template:
+    metadata:
+      labels:
+        app: sleepy
+        component: concerned-low-priority
+    spec:
+      containers:
+      - name: sleep
+        image: gcr.io/google_containers/pause-amd64:3.1
+      terminationGracePeriodSeconds: 1
+
 
 ---
 
@@ -27,14 +100,17 @@ spec:
   selector:
     matchLabels:
       app: sleepy
+      component: concerned-new-style
   template:
     metadata:
       labels:
         app: sleepy
+        component: concerned-new-style
     spec:
       containers:
       - name: sleep
         image: gcr.io/google_containers/pause-amd64:3.1
+      terminationGracePeriodSeconds: 1
 
 ---
 
@@ -47,14 +123,17 @@ spec:
   selector:
     matchLabels:
       app: sleepy
+      component: unconcerned
   template:
     metadata:
       labels:
         app: sleepy
+        component: unconcerned
     spec:
       containers:
       - name: sleep
         image: gcr.io/google_containers/pause-amd64:3.1
+      terminationGracePeriodSeconds: 1
 
 ---
 
@@ -67,11 +146,14 @@ spec:
   selector:
     matchLabels:
       app: sleepy
+      component: unconcerned-new-style
   template:
     metadata:
       labels:
         app: sleepy
+        component: unconcerned-new-style
     spec:
       containers:
       - name: sleep
         image: gcr.io/google_containers/pause-amd64:3.1
+      terminationGracePeriodSeconds: 1

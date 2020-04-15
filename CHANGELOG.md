@@ -1,8 +1,12 @@
 # wiremind-kubernetes
 
-## v4.1.0 (2020-04-10)
+## v5.0.0 (2020-04-15)
+### BREAKING CHANGE:
+- Add support for priorities. Requires upgrade to Kubernetes CustomResourceDefinition ExpectedDeploymentScale.wiremind.io/v1 and changes how dict of deployments are represented internally.
 ### Features:
-- create_job: support for labels.
+- KubernetesDeploymentManager: create_job: support for labels.
+- KubernetesDeploymentManager: Add get_job method.
+- stop-pods: wait for pods to be stopped for real.
 
 ## v4.0.0 (2020-04-10)
 ### Breaking changes

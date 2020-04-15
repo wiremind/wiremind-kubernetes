@@ -26,7 +26,7 @@ setup(
     version=version,
     description="Helper for Kubernetes.",
     author="wiremind",
-    author_email="dev@wiremind.fr",
+    author_email="dev@wiremind.io",
     url="https://gitlab.cayzn.com/wiremind/common/wiremind-kubernetes.git",
     license="Proprietary",
     packages=find_packages("src"),

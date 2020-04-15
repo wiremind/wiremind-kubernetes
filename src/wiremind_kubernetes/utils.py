@@ -69,6 +69,28 @@ def retry_kubernetes_request(function):
     return wrapper
 
 
+def retry_kubernetes_request_no_ignore(function):
+    """
+    Decorator that retries a failed Kubernetes API request if needed and do NOT ignore 404 (raise if 404)
+    """
+
+    @functools.wraps(function)
+    def wrapper(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except kubernetes.client.rest.ApiException as e:
+            if e.status == 404:
+                raise
+            logger.error(e)
+            logger.info("Retrying in 5 seconds...")
+            time.sleep(5)
+            return function(*args, **kwargs)
+        finally:
+            logger.debug("Done.")
+
+    return wrapper
+
+
 def kubernetes_exec(commands, api, pod_name, namespace_name, container_name=None):
     logger.info('Connecting to "%s" pod from "%s" namespace', pod_name, namespace_name)
     resp = kubernetes.stream.stream(

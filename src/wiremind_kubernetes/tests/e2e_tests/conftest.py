@@ -27,40 +27,51 @@ def setUpE2E():
     check_not_using_wiremind_cluster()
 
 
+def delete_namespace():
+    run_command(f"kubectl delete namespace {TEST_NAMESPACE} --wait --grace-period=1",)
+
+
 @pytest.fixture
 def populate_cluster():
-    run_command(f"kubectl create namespace {TEST_NAMESPACE}",)
-    run_command(f"kubectl apply -f {absolute_path}/{E2E_CLUSTER_MANIFESTS} --namespace {TEST_NAMESPACE} --wait",)
+    run_command(f"kubectl apply -f {absolute_path}/../../CustomResourceDefinition-expecteddeploymentscales.yaml",)
 
-    concerned_dm = wiremind_kubernetes.KubernetesDeploymentManager(
-        use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="concerned",
-    )
+    try:
+        run_command(f"kubectl create namespace {TEST_NAMESPACE}",)
+        run_command(f"kubectl apply -f {absolute_path}/{E2E_CLUSTER_MANIFESTS} --namespace {TEST_NAMESPACE} --wait",)
 
-    unconcerned_dm = wiremind_kubernetes.KubernetesDeploymentManager(
-        use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="unconcerned",
-    )
+        concerned_dm = wiremind_kubernetes.KubernetesDeploymentManager(
+            use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="concerned",
+        )
 
-    for _ in range(1, 10):
-        logger.info("Waiting for deployments to be started...")
-        if (
-            not concerned_dm.is_deployment_ready("concerned")
-            or not concerned_dm.is_deployment_ready("concerned-new-style")
-            or not unconcerned_dm.is_deployment_ready("unconcerned")
-            or not unconcerned_dm.is_deployment_ready("unconcerned-new-style")
-        ):
-            logger.info("All Deployments not ready yet, waiting...")
-            run_command(f"kubectl get pods --namespace {TEST_NAMESPACE}")
-            time.sleep(5)
-        else:
-            # OK!
-            break
-    else:
-        run_command(f"kubectl delete namespace {TEST_NAMESPACE} --wait",)
-        raise Exception("Could not start deployments.")
+        unconcerned_dm = wiremind_kubernetes.KubernetesDeploymentManager(
+            use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="unconcerned",
+        )
+
+        ready = False
+        for _ in range(1, 10):
+            logger.info("Waiting for deployments to be started...")
+            if (
+                not concerned_dm.is_deployment_ready("concerned")
+                or not concerned_dm.is_deployment_ready("concerned-new-style")
+                or not unconcerned_dm.is_deployment_ready("unconcerned")
+                or not unconcerned_dm.is_deployment_ready("unconcerned-new-style")
+            ):
+                logger.info("All Deployments not ready yet, waiting...")
+                run_command(f"kubectl get pods --namespace {TEST_NAMESPACE}")
+                time.sleep(5)
+            else:
+                ready = True
+                break
+        if not ready:
+            run_command(f"kubectl delete namespace {TEST_NAMESPACE} --wait",)
+            raise Exception("Could not start deployments.")
+    except:  # noqa E722
+        delete_namespace()
+        raise
 
     yield
 
-    run_command(f"kubectl delete namespace {TEST_NAMESPACE} --wait",)
+    delete_namespace()
 
 
 @pytest.fixture

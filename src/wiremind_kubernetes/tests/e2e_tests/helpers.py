@@ -10,7 +10,7 @@ def check_not_using_wiremind_cluster():
     """
     Will sys.exit(1) if kubectl current context api server is not a test cluster (like kind, minikube, etc)
     """
-    logger.info("[CLUSTER-CONFIG]: Make sure the tests are not running against the main cluster")
+    logger.info("[CLUSTER-CONFIG]: Making sure the tests are not running against the main cluster...")
 
     api_server = subprocess.check_output(
         "kubectl config view --minify | grep server | cut -f 2- -d ':' | tr -d ' '",

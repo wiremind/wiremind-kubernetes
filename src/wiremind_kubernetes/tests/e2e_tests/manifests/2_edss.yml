@@ -1,4 +1,4 @@
-apiVersion: "wiremind.fr/v1"
+apiVersion: "wiremind.io/v1"
 kind: ExpectedDeploymentScale
 metadata:
   name: concerned
@@ -10,7 +10,46 @@ spec:
 
 ---
 
-apiVersion: "wiremind.fr/v1"
+apiVersion: "wiremind.io/v1"
+kind: ExpectedDeploymentScale
+metadata:
+  name: concerned-very-high-priority
+  labels:
+    release: concerned
+spec:
+  deploymentName: concerned-very-high-priority
+  expectedScale: 1
+  priority: 100
+
+---
+
+apiVersion: "wiremind.io/v1"
+kind: ExpectedDeploymentScale
+metadata:
+  name: concerned-low-priority
+  labels:
+    release: concerned
+spec:
+  deploymentName: concerned-low-priority
+  expectedScale: 1
+  priority: -10
+
+---
+
+apiVersion: "wiremind.io/v1"
+kind: ExpectedDeploymentScale
+metadata:
+  name: concerned-high-priority
+  labels:
+    release: concerned
+spec:
+  deploymentName: concerned-high-priority
+  expectedScale: 1
+  priority: 10
+
+---
+
+apiVersion: "wiremind.io/v1"
 kind: ExpectedDeploymentScale
 metadata:
   name: concerned-new-style
@@ -22,7 +61,7 @@ spec:
 
 ---
 
-apiVersion: "wiremind.fr/v1"
+apiVersion: "wiremind.io/v1"
 kind: ExpectedDeploymentScale
 metadata:
   name: unconcerned
@@ -34,7 +73,7 @@ spec:
 
 ---
 
-apiVersion: "wiremind.fr/v1"
+apiVersion: "wiremind.io/v1"
 kind: ExpectedDeploymentScale
 metadata:
   name: unconcerned-new-style
