@@ -1,6 +1,6 @@
 # wiremind-kubernetes
 
-## v5.0.0 (2020-04-15)
+## v5.0.0 (2020-04-23)
 ### BREAKING CHANGE:
 - Add support for priorities. Requires upgrade to Kubernetes CustomResourceDefinition ExpectedDeploymentScale.wiremind.io/v1 and changes how dict of deployments are represented internally.
 ### Features:
