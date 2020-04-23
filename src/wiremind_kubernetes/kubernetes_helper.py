@@ -305,6 +305,39 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         except kubernetes.client.rest.ApiException as e:
             if e.status != 404:
                 raise
+        logger.debug(
+            "Getting Expected Deployment Scale (with new-style labels, expecteddeploymentscale.wiremind.fr) list"
+        )
+        try:
+            eds_list.extend(
+                self.client_custom_objects_api.list_namespaced_custom_object(
+                    namespace=self.namespace,
+                    group="wiremind.fr",
+                    version="v1",
+                    plural="expecteddeploymentscales",
+                    label_selector=f"app.kubernetes.io/instance={self.release_name}",
+                )["items"]
+            )
+        except kubernetes.client.rest.ApiException as e:
+            if e.status != 404:
+                raise
+        logger.debug(
+            "Getting Expected Deployment Scale (with old-style labels, expecteddeploymentscale.wiremind.fr)) list"
+        )
+        try:
+            eds_list.extend(
+                self.client_custom_objects_api.list_namespaced_custom_object(
+                    namespace=self.namespace,
+                    group="wiremind.fr",
+                    version="v1",
+                    plural="expecteddeploymentscales",
+                    label_selector=f"release={self.release_name}",
+                )["items"]
+            )
+        except kubernetes.client.rest.ApiException as e:
+            if e.status != 404:
+                raise
+
         eds_dict: Dict[int, Dict[str, int]] = {}
         for eds in eds_list:
             deployment_name: str = eds["spec"]["deploymentName"]
