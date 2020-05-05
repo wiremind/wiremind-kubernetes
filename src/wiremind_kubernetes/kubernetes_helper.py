@@ -280,63 +280,28 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         """
         logger.debug("Getting Expected Deployment Scale list")
         eds_list: List[Dict[str, Any]] = []
-        try:
-            eds_list = self.client_custom_objects_api.list_namespaced_custom_object(
-                namespace=self.namespace,
-                group="wiremind.io",
-                version="v1",
-                plural="expecteddeploymentscales",
-                label_selector=f"app.kubernetes.io/instance={self.release_name}",
-            )["items"]
-        except kubernetes.client.rest.ApiException as e:
-            if e.status != 404:
-                raise
-        logger.debug("Getting Expected Deployment Scale (with old-style labels) list")
-        try:
-            eds_list.extend(
-                self.client_custom_objects_api.list_namespaced_custom_object(
-                    namespace=self.namespace,
-                    group="wiremind.io",
-                    version="v1",
-                    plural="expecteddeploymentscales",
-                    label_selector=f"release={self.release_name}",
-                )["items"]
-            )
-        except kubernetes.client.rest.ApiException as e:
-            if e.status != 404:
-                raise
-        logger.debug(
-            "Getting Expected Deployment Scale (with new-style labels, expecteddeploymentscale.wiremind.fr) list"
-        )
-        try:
-            eds_list.extend(
-                self.client_custom_objects_api.list_namespaced_custom_object(
-                    namespace=self.namespace,
-                    group="wiremind.fr",
-                    version="v1",
-                    plural="expecteddeploymentscales",
-                    label_selector=f"app.kubernetes.io/instance={self.release_name}",
-                )["items"]
-            )
-        except kubernetes.client.rest.ApiException as e:
-            if e.status != 404:
-                raise
-        logger.debug(
-            "Getting Expected Deployment Scale (with old-style labels, expecteddeploymentscale.wiremind.fr)) list"
-        )
-        try:
-            eds_list.extend(
-                self.client_custom_objects_api.list_namespaced_custom_object(
-                    namespace=self.namespace,
-                    group="wiremind.fr",
-                    version="v1",
-                    plural="expecteddeploymentscales",
-                    label_selector=f"release={self.release_name}",
-                )["items"]
-            )
-        except kubernetes.client.rest.ApiException as e:
-            if e.status != 404:
-                raise
+        crd_groups = ["wiremind.io", "wiremind.fr"]
+        release_label_keys = ["app.kubernetes.io/instance", "release"]
+
+        for crd_group in crd_groups:
+            for release_label_key in release_label_keys:
+                logger.debug(
+                    f"Getting Expected Deployment Scale list of the group {crd_group} with the"
+                    f" release label key {release_label_key}"
+                )
+                try:
+                    eds_list.extend(
+                        self.client_custom_objects_api.list_namespaced_custom_object(
+                            namespace=self.namespace,
+                            group=crd_group,
+                            version="v1",
+                            plural="expecteddeploymentscales",
+                            label_selector=f"{release_label_key}={self.release_name}",
+                        )["items"]
+                    )
+                except kubernetes.client.rest.ApiException as e:
+                    if e.status != 404:
+                        raise
 
         eds_dict: Dict[int, Dict[str, int]] = {}
         for eds in eds_list:
