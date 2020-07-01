@@ -3,6 +3,8 @@
 ## v6.0.0 (2020-07-03)
 ### BREAKING CHANGES
 - Remove a lot of helper methods, replace them by wrapped kubernetes clients where we dynamically add needed additional parameters like dry_run or pretty to each function.
+### fixes
+- run_command: fix mypy error check where it considers that process.stdout can be None even if we explicitely request it.
 
 ## v5.1.0 (2020-05-07)
 ### Fixes

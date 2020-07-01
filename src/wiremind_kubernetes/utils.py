@@ -38,8 +38,9 @@ def run_command(
         out, err = process.communicate()
         return (out, err, process.returncode)
 
-    for line in iter(process.stdout.readline, ""):
-        line_callback(line.strip())
+    if process.stdout:
+        for line in iter(process.stdout.readline, ""):
+            line_callback(line.strip())
     process.wait()
 
     if process.returncode:
