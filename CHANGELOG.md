@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.0.0 (2020-07-03)
+### BREAKING CHANGES
+- Remove a lot of helper methods, replace them by wrapped kubernetes clients where we dynamically add needed additional parameters like dry_run or pretty to each function.
+
 ## v5.1.0 (2020-05-07)
 ### Fixes
 - Ensure backward compatibility with wiremind.fr old EDS resources.

@@ -8,6 +8,12 @@ import kubernetes
 from wiremind_kubernetes.exceptions import PodNotFound
 
 from .kube_config import load_kubernetes_config
+from .kubernetes_client_additional_arguments import (
+    AppV1ApiWithArguments,
+    BatchV1ApiWithArguments,
+    CoreV1ApiWithArguments,
+    CustomObjectsApiWithArguments,
+)
 from .utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
 logger = logging.getLogger(__name__)
@@ -34,57 +40,14 @@ class KubernetesHelper:
         """
         if should_load_kubernetes_config:
             load_kubernetes_config(use_kubeconfig=use_kubeconfig)
-        self.client_appsv1_api: kubernetes.client.AppsV1Api = kubernetes.client.AppsV1Api()
-        self.client_corev1_api: kubernetes.client.CoreV1Api = kubernetes.client.CoreV1Api()
-        self.client_batchv1_api: kubernetes.client.BatchV1Api = kubernetes.client.BatchV1Api()
-        self.client_custom_objects_api: kubernetes.client.CustomObjectsApi = kubernetes.client.CustomObjectsApi()
+        self.client_corev1_api: kubernetes.client.AppsV1Api = CoreV1ApiWithArguments(dry_run=dry_run)
+        self.client_appsv1_api: kubernetes.client.CoreV1Api = AppV1ApiWithArguments(dry_run=dry_run)
+        self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run)
+        self.client_custom_objects_api: kubernetes.client.CustomObjectsApi = CustomObjectsApiWithArguments(
+            dry_run=dry_run
+        )
 
         self.dry_run: bool = dry_run
-
-        # Every read request have those arguments added
-        self.read_additional_arguments: Dict[str, Any] = dict(pretty=True)
-        # Every request, either read or write, have those arguments added
-        self.additional_arguments: Dict[str, Any] = self.read_additional_arguments.copy()
-        if dry_run:
-            # Dry run, in kube API, is not true or false, but either dry_run: All or not defined.
-            self.additional_arguments["dry_run"] = "All"
-
-    def delete_resource(self, resource_name: str, resource_namespace: str, delete_function):
-        return delete_function(resource_name, resource_namespace, **self.additional_arguments)
-
-    def delete_pod(self, pod_name: str, pod_namespace: str):
-        return self.delete_resource(pod_name, pod_namespace, self.client_corev1_api.delete_namespaced_pod)
-
-    def delete_pvc(self, pvc_name: str, pvc_namespace: str):
-        return self.delete_resource(
-            pvc_name, pvc_namespace, self.client_corev1_api.delete_namespaced_persistent_volume_claim,
-        )
-
-    def delete_job(self, job_name: str, job_namespace: str):
-        return self.delete_resource(job_name, job_namespace, self.client_batchv1_api.delete_namespaced_job)
-
-    def delete_secret(self, secret_name: str, secret_namespace: str):
-        return self.delete_resource(secret_name, secret_namespace, self.client_corev1_api.delete_namespaced_secret,)
-
-    def delete_deployment(self, deployment_name: str, namespace: str):
-        return self.delete_resource(deployment_name, namespace, self.client_appsv1_api.delete_namespaced_deployment,)
-
-    def list_deployment(self, **kwargs):
-        return self.client_appsv1_api.list_deployment_for_all_namespaces(**kwargs, **self.read_additional_arguments)
-
-    def list_pod(self, **kwargs):
-        return self.client_corev1_api.list_pod_for_all_namespaces(**kwargs, **self.read_additional_arguments)
-
-    def list_pvc(self, **kwargs):
-        return self.client_corev1_api.list_persistent_volume_claim_for_all_namespaces(
-            **kwargs, **self.read_additional_arguments
-        )
-
-    def list_job(self, **kwargs):
-        return self.client_batchv1_api.list_job_for_all_namespaces(**kwargs, **self.read_additional_arguments)
-
-    def list_secret(self, **kwargs):
-        return self.client_corev1_api.list_secret_for_all_namespaces(**kwargs, **self.read_additional_arguments)
 
 
 def _get_namespace_from_kube() -> str:
@@ -124,23 +87,17 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
     def get_deployment_scale(self, deployment_name: str):
         logger.debug("Getting deployment scale for %s", deployment_name)
-        return self.client_appsv1_api.read_namespaced_deployment_scale(
-            deployment_name, self.namespace, **self.read_additional_arguments
-        )
+        return self.client_appsv1_api.read_namespaced_deployment_scale(deployment_name, self.namespace)
 
     def get_statefulset_scale(self, statefulset_name: str):
         logger.debug("Getting statefulset scale for %s", statefulset_name)
-        return self.client_appsv1_api.read_namespaced_stateful_set_scale(
-            statefulset_name, self.namespace, **self.read_additional_arguments,
-        )
+        return self.client_appsv1_api.read_namespaced_stateful_set_scale(statefulset_name, self.namespace)
 
     def scale_down_statefulset(self, statefulset_name: str):
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Deleting all Pods for %s", statefulset_name)
         body.spec.replicas = 0
-        self.client_appsv1_api.patch_namespaced_stateful_set_scale(
-            statefulset_name, self.namespace, body, **self.additional_arguments,
-        )
+        self.client_appsv1_api.patch_namespaced_stateful_set_scale(statefulset_name, self.namespace, body)
         logger.debug("Done deleting.")
 
     @retry_kubernetes_request_no_ignore
@@ -148,18 +105,14 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Deleting all Pods for %s", deployment_name)
         body.spec.replicas = 0
-        self.client_appsv1_api.patch_namespaced_deployment_scale(
-            deployment_name, self.namespace, body, **self.additional_arguments,
-        )
+        self.client_appsv1_api.patch_namespaced_deployment_scale(deployment_name, self.namespace, body)
         logger.debug("Done deleting.")
 
     def scale_up_statefulset(self, statefulset_name: str, pod_amount: int = 1):
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Recreating backend Pods for %s", statefulset_name)
         body.spec.replicas = pod_amount
-        self.client_appsv1_api.patch_namespaced_stateful_set_scale(
-            statefulset_name, self.namespace, body, **self.additional_arguments,
-        )
+        self.client_appsv1_api.patch_namespaced_stateful_set_scale(statefulset_name, self.namespace, body)
         logger.debug("Done recreating.")
 
     @retry_kubernetes_request_no_ignore
@@ -167,9 +120,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Recreating backend Pods for %s", deployment_name)
         body.spec.replicas = pod_amount
-        self.client_appsv1_api.patch_namespaced_deployment_scale(
-            deployment_name, self.namespace, body, **self.additional_arguments,
-        )
+        self.client_appsv1_api.patch_namespaced_deployment_scale(deployment_name, self.namespace, body)
         logger.debug("Done recreating.")
 
     def is_statefulset_stopped(self, deployment_name: str) -> bool:
@@ -181,11 +132,11 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         labels: Dict[str, str]
         if statefulset:
             labels = self.client_appsv1_api.read_namespaced_stateful_set(
-                deployment_name, self.namespace, **self.read_additional_arguments,
+                deployment_name, self.namespace
             ).spec.selector.match_labels
         else:
             labels = self.client_appsv1_api.read_namespaced_deployment(
-                deployment_name, self.namespace, **self.read_additional_arguments,
+                deployment_name, self.namespace
             ).spec.selector.match_labels
         try:
             found_pods = self.client_corev1_api.list_namespaced_pod(
@@ -204,13 +155,9 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
     def is_deployment_ready(self, deployment_name: str, statefulset: bool = False):
         if statefulset:
-            status = self.client_appsv1_api.read_namespaced_stateful_set_status(
-                deployment_name, self.namespace, **self.read_additional_arguments,
-            )
+            status = self.client_appsv1_api.read_namespaced_stateful_set_status(deployment_name, self.namespace)
         else:
-            status = self.client_appsv1_api.read_namespaced_deployment_status(
-                deployment_name, self.namespace, **self.read_additional_arguments,
-            )
+            status = self.client_appsv1_api.read_namespaced_deployment_status(deployment_name, self.namespace)
         expected_replicas = status.spec.replicas
         ready_replicas = status.status.ready_replicas
         resource_type = statefulset and "StatefulSet" or "Deployment"
@@ -453,7 +400,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
 
     def create_job(self, job_body: kubernetes.client.V1Job) -> kubernetes.client.V1Job:
         try:
-            return self.client_batchv1_api.create_namespaced_job(self.namespace, job_body, **self.additional_arguments)
+            return self.client_batchv1_api.create_namespaced_job(self.namespace, job_body)
         except kubernetes.client.rest.ApiException as e:
             print("Exception when calling BatchV1Api->create_namespaced_job: %s\n" % e)
 
@@ -462,7 +409,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         Get a job, concatenating release_name and job_name as job name.
         """
         job_name = f"{self.release_name}-{job_name}"
-        return self.client_batchv1_api.read_namespaced_job(job_name, self.namespace, **self.additional_arguments)
+        return self.client_batchv1_api.read_namespaced_job(job_name, self.namespace)
 
     def delete_job(self, job_name):
         """
