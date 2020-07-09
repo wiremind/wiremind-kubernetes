@@ -10,7 +10,7 @@ from wiremind_kubernetes.utils import run_command
 from wiremind_kubernetes.tests.e2e_tests.helpers import check_not_using_wiremind_cluster
 
 E2E_CLUSTER_MANIFESTS = "tests/e2e_tests/manifests"
-absolute_path = os.path.dirname(os.path.join((os.path.abspath(wiremind_kubernetes.__file__))))
+absolute_path = os.path.dirname(os.path.join(os.path.abspath(wiremind_kubernetes.__file__)))
 TEST_NAMESPACE = "wiremind-kube-e2e-test"
 
 

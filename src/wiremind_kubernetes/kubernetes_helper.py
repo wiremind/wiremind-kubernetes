@@ -181,10 +181,10 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             deployment = self.client_appsv1_api.read_namespaced_deployment(deployment_name, namespace_name)
         except kubernetes.client.rest.ApiException as e:
             if e.status == 404:
-                raise PodNotFound("No deployment %s was found in the namespace %s" % (deployment_name, namespace_name))
+                raise PodNotFound(f"No deployment {deployment_name} was found in the namespace {namespace_name}")
             else:
                 raise
-        selector = ",".join("%s=%s" % (key, value) for key, value in deployment.spec.selector.match_labels.items())
+        selector = ",".join(f"{key}={value}" for key, value in deployment.spec.selector.match_labels.items())
         pod_list = self.client_corev1_api.list_namespaced_pod(namespace_name, label_selector=selector).items
         if not pod_list:
             raise PodNotFound("No matching pod was found in the namespace %s" % (namespace_name))
