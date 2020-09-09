@@ -15,7 +15,10 @@ def test_run_command_succeeded(mocker):
     run_command("echo lol")
 
     popen_spy.assert_called_once_with(
-        ["echo", "lol"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True,
+        ["echo", "lol"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
     )
     log_spy.assert_called_with("lol")
 
@@ -30,7 +33,10 @@ def test_run_command_with_array_succeeded(mocker):
     run_command(["echo", "lol"])
 
     popen_spy.assert_called_once_with(
-        ["echo", "lol"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True,
+        ["echo", "lol"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
     )
     log_spy.assert_called_with("lol")
 
@@ -44,7 +50,10 @@ def test_run_command_succeeded_return_result(mocker):
     stdout, stderr, returncode = run_command("echo lol", return_result=True)
 
     popen_spy.assert_called_once_with(
-        ["echo", "lol"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True,
+        ["echo", "lol"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
     )
 
     assert stdout == "lol\n"
@@ -67,7 +76,10 @@ def test_run_command_succeeded_line_callback(mocker):
     run_command("echo lol", line_callback=line_callback)
 
     popen_spy.assert_called_once_with(
-        ["echo", "lol"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True,
+        ["echo", "lol"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
     )
 
     assert result == ["lol"]
@@ -81,7 +93,10 @@ def test_run_command_failed(mocker):
     with pytest.raises(subprocess.CalledProcessError):
         run_command("false")
     popen_spy.assert_called_once_with(
-        ["false"], stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True,
+        ["false"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
     )
 
 
@@ -134,7 +149,11 @@ def test_run_command_honors_args(mocker):
     run_command(["echo lol; true"], shell=True)
 
     popen_spy.assert_called_once_with(
-        ["echo lol; true"], shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, universal_newlines=True,
+        ["echo lol; true"],
+        shell=True,
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
     )
 
     log_spy.assert_called_with("lol")

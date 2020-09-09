@@ -28,23 +28,35 @@ def setUpE2E():
 
 
 def delete_namespace():
-    run_command(f"kubectl delete namespace {TEST_NAMESPACE} --wait --grace-period=1",)
+    run_command(
+        f"kubectl delete namespace {TEST_NAMESPACE} --wait --grace-period=1",
+    )
 
 
 @pytest.fixture
 def populate_cluster():
-    run_command(f"kubectl apply -f {absolute_path}/../../CustomResourceDefinition-expecteddeploymentscales.yaml",)
+    run_command(
+        f"kubectl apply -f {absolute_path}/../../CustomResourceDefinition-expecteddeploymentscales.yaml",
+    )
 
     try:
-        run_command(f"kubectl create namespace {TEST_NAMESPACE}",)
-        run_command(f"kubectl apply -f {absolute_path}/{E2E_CLUSTER_MANIFESTS} --namespace {TEST_NAMESPACE} --wait",)
+        run_command(
+            f"kubectl create namespace {TEST_NAMESPACE}",
+        )
+        run_command(
+            f"kubectl apply -f {absolute_path}/{E2E_CLUSTER_MANIFESTS} --namespace {TEST_NAMESPACE} --wait",
+        )
 
         concerned_dm = wiremind_kubernetes.KubernetesDeploymentManager(
-            use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="concerned",
+            use_kubeconfig=True,
+            namespace=TEST_NAMESPACE,
+            release_name="concerned",
         )
 
         unconcerned_dm = wiremind_kubernetes.KubernetesDeploymentManager(
-            use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="unconcerned",
+            use_kubeconfig=True,
+            namespace=TEST_NAMESPACE,
+            release_name="unconcerned",
         )
 
         ready = False
@@ -63,7 +75,9 @@ def populate_cluster():
                 ready = True
                 break
         if not ready:
-            run_command(f"kubectl delete namespace {TEST_NAMESPACE} --wait",)
+            run_command(
+                f"kubectl delete namespace {TEST_NAMESPACE} --wait",
+            )
             raise Exception("Could not start deployments.")
     except:  # noqa E722
         delete_namespace()
@@ -76,22 +90,30 @@ def populate_cluster():
 
 @pytest.fixture
 def create_namespace():
-    run_command(f"kubectl create namespace {TEST_NAMESPACE}",)
+    run_command(
+        f"kubectl create namespace {TEST_NAMESPACE}",
+    )
 
     yield
 
-    run_command(f"kubectl delete namespace {TEST_NAMESPACE} --wait",)
+    run_command(
+        f"kubectl delete namespace {TEST_NAMESPACE} --wait",
+    )
 
 
 @pytest.fixture
 def concerned_dm():
     return wiremind_kubernetes.KubernetesDeploymentManager(
-        use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="concerned",
+        use_kubeconfig=True,
+        namespace=TEST_NAMESPACE,
+        release_name="concerned",
     )
 
 
 @pytest.fixture
 def unconcerned_dm():
     return wiremind_kubernetes.KubernetesDeploymentManager(
-        use_kubeconfig=True, namespace=TEST_NAMESPACE, release_name="unconcerned",
+        use_kubeconfig=True,
+        namespace=TEST_NAMESPACE,
+        release_name="unconcerned",
     )

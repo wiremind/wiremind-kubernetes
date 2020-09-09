@@ -1,7 +1,7 @@
 """
 wiremind-kubernetes
 
-Copyright 2018, wiremind.
+Copyright 2018, 2019, 2020 wiremind.
 """
 from setuptools import setup, find_packages
 
@@ -18,7 +18,15 @@ extra_require_test = [
 extra_require_mypy = [
     "mypy",
 ]
-extra_require_dev = ["flake8", "flake8-mutable", "pip-tools>=3.7.0",] + extra_require_mypy + extra_require_test
+extra_require_dev = (
+    [
+        "flake8",
+        "flake8-mutable",
+        "pip-tools>=3.7.0",
+    ]
+    + extra_require_mypy
+    + extra_require_test
+)
 
 
 setup(
@@ -27,13 +35,19 @@ setup(
     description="Helper for Kubernetes.",
     author="wiremind",
     author_email="dev@wiremind.io",
-    url="https://gitlab.cayzn.com/wiremind/common/wiremind-kubernetes.git",
+    url="https://gitlab.cayzn.com/wiremind/devops/wiremind-kubernetes.git",
     license="Proprietary",
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
     zip_safe=True,
-    install_requires=["kubernetes>=11.0.0",],
-    extras_require={"dev": extra_require_dev, "mypy": extra_require_mypy, "test": extra_require_test,},
+    install_requires=[
+        "kubernetes>=11.0.0",
+    ],
+    extras_require={
+        "dev": extra_require_dev,
+        "mypy": extra_require_mypy,
+        "test": extra_require_test,
+    },
     python_requires=">=3.6.0",
 )

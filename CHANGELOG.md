@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.0.1 (2020-09-07)
+### fixes
+- delete-job: propagate deletion to related pod(s). Avoid having orphaned Pods when Job is deleted.
+
 ## v6.0.0 (2020-07-03)
 ### BREAKING CHANGES
 - Remove a lot of helper methods, replace them by wrapped kubernetes clients where we dynamically add needed additional parameters like dry_run or pretty to each function.

@@ -10,7 +10,7 @@ variables:
   EGG_NAME: wiremind-kubernetes
   PACKAGE_NAME: wiremind_kubernetes
   SRC_DIR: src
-  WIREMIND_PYTHON_IMAGE: python:3.7
+  DOCKER_BASE_IMAGE: python:3.7
 
 conventional-commits:
   allow_failure: true

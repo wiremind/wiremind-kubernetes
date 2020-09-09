@@ -25,7 +25,10 @@ class KubernetesHelper:
     """
 
     def __init__(
-        self, use_kubeconfig: bool = False, dry_run: bool = False, should_load_kubernetes_config: bool = True,
+        self,
+        use_kubeconfig: bool = False,
+        dry_run: bool = False,
+        should_load_kubernetes_config: bool = True,
     ):
         """
         :param use_kubeconfig:
@@ -40,8 +43,8 @@ class KubernetesHelper:
         """
         if should_load_kubernetes_config:
             load_kubernetes_config(use_kubeconfig=use_kubeconfig)
-        self.client_corev1_api: kubernetes.client.AppsV1Api = CoreV1ApiWithArguments(dry_run=dry_run)
-        self.client_appsv1_api: kubernetes.client.CoreV1Api = AppV1ApiWithArguments(dry_run=dry_run)
+        self.client_corev1_api: kubernetes.client.CoreV1Api = CoreV1ApiWithArguments(dry_run=dry_run)
+        self.client_appsv1_api: kubernetes.client.AppsV1Api = AppV1ApiWithArguments(dry_run=dry_run)
         self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run)
         self.client_custom_objects_api: kubernetes.client.CustomObjectsApi = CustomObjectsApiWithArguments(
             dry_run=dry_run
@@ -388,12 +391,15 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
 
         pod_template_spec = kubernetes.client.V1PodTemplateSpec()
         pod_template_spec.spec = kubernetes.client.V1PodSpec(
-            containers=[container], restart_policy="Never", image_pull_secrets=image_pull_secrets,
+            containers=[container],
+            restart_policy="Never",
+            image_pull_secrets=image_pull_secrets,
         )
         pod_template_spec.metadata = kubernetes.client.V1ObjectMeta(labels=labels)
 
         job.spec = kubernetes.client.V1JobSpec(
-            ttl_seconds_after_finished=ttl_seconds_after_finished, template=pod_template_spec,
+            ttl_seconds_after_finished=ttl_seconds_after_finished,
+            template=pod_template_spec,
         )
 
         return job
@@ -416,4 +422,5 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         Get a job, concatenating release_name and job_name as job name.
         """
         job_name = f"{self.release_name}-{job_name}"
-        return self.client_batchv1_api.delete_namespaced_job(job_name, self.namespace, **self.additional_arguments)
+        body = kubernetes.client.V1DeleteOptions(propagation_policy="Background")
+        return self.client_batchv1_api.delete_namespaced_job(name=job_name, namespace=self.namespace, body=body)

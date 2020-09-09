@@ -17,7 +17,15 @@ def test_stop_pods_priority(mocker):
 
     mocker.patch(
         "wiremind_kubernetes.KubernetesDeploymentManager._get_expected_deployment_scale_dict",
-        return_value={0: {"last": 42}, 2: {"first": 17,}, 1: {"second": 17,},},
+        return_value={
+            0: {"last": 42},
+            2: {
+                "first": 17,
+            },
+            1: {
+                "second": 17,
+            },
+        },
     )
 
     mocked_stop_deployments = mocker.patch("wiremind_kubernetes.KubernetesDeploymentManager._stop_deployments")
