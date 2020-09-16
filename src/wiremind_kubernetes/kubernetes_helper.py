@@ -359,6 +359,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         ttl_seconds_after_finished: int = 1800,
         image_pull_secrets: Union[List[kubernetes.client.V1LocalObjectReference], None] = None,
         image_pull_policy: str = "IfNotPresent",
+        priority_class_name: str = "",
     ) -> kubernetes.client.V1Job:
         """
         Generate a job object.
@@ -394,6 +395,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
             containers=[container],
             restart_policy="Never",
             image_pull_secrets=image_pull_secrets,
+            priority_class_name=priority_class_name,
         )
         pod_template_spec.metadata = kubernetes.client.V1ObjectMeta(labels=labels)
 

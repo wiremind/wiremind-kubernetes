@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.1.0 (2020-09-18)
+### featuers
+- KubernetesHelper: add priority_class_name to generate_job
+
 ## v6.0.1 (2020-09-07)
 ### fixes
 - delete-job: propagate deletion to related pod(s). Avoid having orphaned Pods when Job is deleted.

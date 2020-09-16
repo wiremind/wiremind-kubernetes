@@ -94,6 +94,11 @@ def create_namespace():
         f"kubectl create namespace {TEST_NAMESPACE}",
     )
 
+    run_command(
+        f"kubectl apply -f {absolute_path}/{E2E_CLUSTER_MANIFESTS}/0_priorityclasses.yml"
+        f" --namespace {TEST_NAMESPACE} --wait"
+    )
+
     yield
 
     run_command(

@@ -1,0 +1,9 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: two-thousand-and-six
+value: 2006
+globalDefault: false
+description: "two-thousand-and-six"
+
+

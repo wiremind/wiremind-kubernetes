@@ -28,6 +28,9 @@ def test_create_job(concerned_dm, create_namespace):
             logger.info("job not ready yet, waiting...")
             time.sleep(5)
     assert created_job.status.active == 1
+    # The priorityclass was set to "", Kube will ignore it
+    # and render the priority of the Pod to 0
+    assert created_job.spec.template.spec.priority_class_name is None
 
     concerned_dm.delete_job(job_name=job_name)
     for _ in range(1, 10):
@@ -59,9 +62,15 @@ def test_create_job_argument(concerned_dm, create_namespace):
     Test that create job with command / args works and finishes as expected
     """
     job_name = "my-test-job"
+    priority_class_name = "two-thousand-and-six"
     concerned_dm.create_job(
         concerned_dm.generate_job(
-            job_name=job_name, container_image="alpine:latest", command="sh", args=["-c", "true"], labels={"foo": "bar"}
+            job_name=job_name,
+            container_image="alpine:latest",
+            command="sh",
+            args=["-c", "true"],
+            labels={"foo": "bar"},
+            priority_class_name=priority_class_name,
         )
     )
 
@@ -75,3 +84,5 @@ def test_create_job_argument(concerned_dm, create_namespace):
             logger.info("job not finished yet, waiting...")
             time.sleep(5)
     assert created_job.status.succeeded == 1
+    # Check that the priority was set as we wanted
+    assert created_job.spec.template.spec.priority_class_name == priority_class_name
