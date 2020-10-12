@@ -1,7 +1,11 @@
 # wiremind-kubernetes
 
+## v6.1.1 (2020-10-12)
+### Fixes
+- Remove unused expecteddeploymentscale.wiremind.fr support.
+
 ## v6.1.0 (2020-09-18)
-### featuers
+### Features
 - KubernetesHelper: add priority_class_name to generate_job
 
 ## v6.0.1 (2020-09-07)
