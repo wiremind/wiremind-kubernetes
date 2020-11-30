@@ -1,8 +1,8 @@
 include:
-  - project: 'wiremind/gitlab-ci-common'
+  - project: 'wiremind/devops/gitlab-ci-common'
     ref: 'master'
     file: 'abstract.yml'
-  - project: 'wiremind/gitlab-ci-common'
+  - project: 'wiremind/devops/gitlab-ci-common'
     ref: 'master'
     file: 'libraries/platform.yml'
 
