@@ -1,5 +1,10 @@
 # wiremind-kubernetes
 
+## v6.2.0 (2021-01-13)
+### Feature
+- Add the possibility to specify the kubernetes context and the config file path while loading the kubernetes config
+using `wiremind_kubernetes.kube_config.load_kubernetes_config`
+
 ## v6.1.1 (2020-10-12)
 ### Fixes
 - Remove unused expecteddeploymentscale.wiremind.fr support.
