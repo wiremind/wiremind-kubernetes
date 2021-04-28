@@ -1,7 +1,7 @@
 import logging
 import pprint
 import time
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import kubernetes
 
@@ -29,6 +29,7 @@ class KubernetesHelper:
         use_kubeconfig: bool = False,
         dry_run: bool = False,
         should_load_kubernetes_config: bool = True,
+        context: Optional[str] = None,
     ):
         """
         :param use_kubeconfig:
@@ -42,7 +43,7 @@ class KubernetesHelper:
             Defaults to True.
         """
         if should_load_kubernetes_config:
-            load_kubernetes_config(use_kubeconfig=use_kubeconfig)
+            load_kubernetes_config(use_kubeconfig=use_kubeconfig, context=context)
         self.client_corev1_api: kubernetes.client.CoreV1Api = CoreV1ApiWithArguments(dry_run=dry_run)
         self.client_appsv1_api: kubernetes.client.AppsV1Api = AppV1ApiWithArguments(dry_run=dry_run)
         self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run)
@@ -68,6 +69,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         namespace: Union[None, str] = None,
         dry_run: bool = False,
         should_load_kubernetes_config: bool = True,
+        context: Optional[str] = None,
     ):
         """
         :param use_kubeconfig:
@@ -81,7 +83,10 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             Dry run.
         """
         super().__init__(
-            use_kubeconfig=use_kubeconfig, dry_run=dry_run, should_load_kubernetes_config=should_load_kubernetes_config
+            use_kubeconfig=use_kubeconfig,
+            dry_run=dry_run,
+            should_load_kubernetes_config=should_load_kubernetes_config,
+            context=context,
         )
         if namespace:
             self.namespace = namespace
