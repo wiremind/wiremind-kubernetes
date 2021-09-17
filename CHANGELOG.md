@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## vW.X.Y (ZZZZZZ)
+### Chore (break ch?)
+- Requires python>=3.7
+
 ## v6.2.0 (2021-01-13)
 ### Feature
 - Add the possibility to specify the kubernetes context and the config file path while loading the kubernetes config

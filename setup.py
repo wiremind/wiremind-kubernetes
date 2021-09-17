@@ -1,7 +1,7 @@
 """
 wiremind-kubernetes
 
-Copyright 2018, 2019, 2020 wiremind.
+Copyright 2018-2021 wiremind.
 """
 from setuptools import setup, find_packages
 
@@ -11,9 +11,7 @@ with open("VERSION") as version_file:
 extra_require_test = [
     "mock",
     "pytest",
-    # 1.13 (through https://github.com/pytest-dev/pytest-mock/commit/7bddcd53d287a59150d22e6496bcf20af44c3378)
-    # broke our tests
-    "pytest-mock==1.12.1",
+    "pytest-mock",
 ]
 extra_require_mypy = [
     "mypy",
@@ -21,6 +19,7 @@ extra_require_mypy = [
 extra_require_dev = (
     [
         "flake8",
+        "black",
         "flake8-mutable",
         "pip-tools>=3.7.0",
     ]
@@ -49,5 +48,5 @@ setup(
         "mypy": extra_require_mypy,
         "test": extra_require_test,
     },
-    python_requires=">=3.6.0",
+    python_requires=">=3.7.0",
 )
