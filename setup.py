@@ -45,7 +45,7 @@ allowing to scale down ALL Deployments of a Helm Release marked as such).""",
     include_package_data=True,
     zip_safe=True,
     install_requires=[
-        "kubernetes>=11.0.0",
+        "kubernetes>=18.0.0",
     ],
     extras_require={
         "dev": extra_require_dev,
