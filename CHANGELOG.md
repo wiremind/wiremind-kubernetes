@@ -1,7 +1,8 @@
 # wiremind-kubernetes
 
-## vW.X.Y (ZZZZZZ)
-### Chore (break ch?)
+## v6.2.1 (2021-10-04)
+### Chore
+- Open-sourcing
 - Requires python>=3.7
 
 ## v6.2.0 (2021-01-13)

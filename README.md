@@ -1,4 +1,15 @@
-# Kubernetes helper
+# Wiremind Kubernetes helper
+
+This Python library is a high-level set of Kubernetes Helpers allowing either to manage individual standard Kubernetes controllers (Deployment, StatefulSets, etc)
+or a logical set of standard Kubernetes controllers through the `expecteddeploymentscales.wiremind.io` CRD (for example allowing to scale down ALL Deployments of a Helm Release marked as such).
+
+## Installation
+
+This library requires the `expecteddeploymentscales.wiremind.io` CRD: `kubectl apply -f CustomResourceDefinition-expecteddeploymentscales.yaml`.
+
+## Usage
+
+See examples of usage in Wiremind [Chartreuse](https://github.com/wiremind/chartreuse) tool.
 
 ## stop-pods priorities
 

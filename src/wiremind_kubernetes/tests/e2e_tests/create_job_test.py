@@ -1,4 +1,5 @@
 import logging
+import pprint
 import time
 
 import kubernetes
@@ -45,7 +46,7 @@ def test_create_job(concerned_dm, create_namespace):
             logger.info("job is not deleted yet, waiting...")
             time.sleep(1)
 
-    for _ in range(1, 10):
+    for _ in range(1, 30):
         pod_list = concerned_dm.client_corev1_api.list_namespaced_pod(
             TEST_NAMESPACE, label_selector=f"job-name={concerned_dm.release_name}-{job_name}"
         ).items
@@ -54,6 +55,7 @@ def test_create_job(concerned_dm, create_namespace):
         else:
             logger.info("Related pod is not deleted yet, waiting...")
             time.sleep(1)
+    pprint.pprint(pod_list)
     assert not pod_list
 
 
