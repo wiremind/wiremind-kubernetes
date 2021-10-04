@@ -1,4 +1,5 @@
 import logging
+import pprint
 import time
 
 import kubernetes
@@ -54,6 +55,7 @@ def test_create_job(concerned_dm, create_namespace):
         else:
             logger.info("Related pod is not deleted yet, waiting...")
             time.sleep(1)
+    pprint.pprint(pod_list)
     assert not pod_list
 
 
