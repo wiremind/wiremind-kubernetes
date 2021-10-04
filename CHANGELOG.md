@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.3.2 (2021-10-04)
+### Fixes
+- setup.py: require kubernetes>=18.
+
 ## v6.3.1 (2021-10-04)
 ### Chore
 - Open-sourcing
