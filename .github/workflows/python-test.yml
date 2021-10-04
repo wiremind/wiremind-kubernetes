@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -39,19 +39,6 @@ jobs:
       - name: Check syntax with pyupgrade
         run: |
           find . -type f -regex '.*\.py$' -exec pyupgrade --py37-plus {} \;
-
-      - name: SAST with bandit
-        run: |
-          safety check -r requirements.txt --full-report
-
-      - uses: reviewdog/action-black@v2
-        with:
-          github_token: ${{ secrets.github_token }}
-          # Change reviewdog reporter if you need [github-pr-check, github-check].
-          reporter: github-pr-check
-          # Change reporter level if you need.
-          # GitHub Status Check won't become failure with a warning.
-          level: warning
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.2.0

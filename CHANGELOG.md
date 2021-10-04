@@ -1,9 +1,13 @@
 # wiremind-kubernetes
 
-## v6.2.1 (2021-10-04)
+## v6.3.1 (2021-10-04)
 ### Chore
 - Open-sourcing
 - Requires python>=3.7
+
+## v6.3.0 (2021-04-28)0
+### Feature
+- allow to give kube context as parameter.
 
 ## v6.2.0 (2021-01-13)
 ### Feature
