@@ -29,12 +29,6 @@ def test_stop_pods_priority(mocker):
     )
 
     mocked_stop_deployments = mocker.patch("wiremind_kubernetes.KubernetesDeploymentManager._stop_deployments")
-    mocked_wait_for_deployments_stopped = mocker.patch(
-        "wiremind_kubernetes.KubernetesDeploymentManager._wait_for_deployments_stopped"
-    )
-    merged_mock = unittest.mock.Mock()
-    merged_mock.attach_mock(mocked_stop_deployments, "_stop_deployments")
-    merged_mock.attach_mock(mocked_wait_for_deployments_stopped, "_wait_for_deployments_stopped")
 
     kdm = wiremind_kubernetes.KubernetesDeploymentManager(
         should_load_kubernetes_config=False, namespace="foo", release_name="concerned", dry_run=True
@@ -43,11 +37,37 @@ def test_stop_pods_priority(mocker):
 
     expected_calls = [
         unittest.mock.call._stop_deployments({"first": 17}),
-        unittest.mock.call._wait_for_deployments_stopped({"first": 17}),
         unittest.mock.call._stop_deployments({"second": 17}),
-        unittest.mock.call._wait_for_deployments_stopped({"second": 17}),
         unittest.mock.call._stop_deployments({"last": 42}),
-        unittest.mock.call._wait_for_deployments_stopped({"last": 42}),
     ]
 
-    assert merged_mock.mock_calls == expected_calls
+    assert mocked_stop_deployments.mock_calls == expected_calls
+
+
+def test_stop_deployments_correctly_wait(mocker):
+    """
+    Test that we wait for deployments to be stopped
+    """
+    mocker.patch("kubernetes.client.AppsV1Api")
+    mocker.patch("kubernetes.client.CoreV1Api")
+    mocker.patch("kubernetes.client.BatchV1Api")
+    mocker.patch("kubernetes.client.CustomObjectsApi")
+
+    deployment_dict = {0: {"my-pod": 42, "my-other-pod": 113}}
+
+    mocked_are_deployments_stopped = mocker.patch(
+        "wiremind_kubernetes.KubernetesDeploymentManager._are_deployments_stopped", side_effect=[False, False, True]
+    )
+
+    kdm = wiremind_kubernetes.KubernetesDeploymentManager(
+        should_load_kubernetes_config=False, namespace="foo", release_name="concerned", dry_run=True
+    )
+    kdm._stop_deployments(deployment_dict)
+
+    expected_calls = [
+        unittest.mock.call._are_deployments_stopped(deployment_dict),
+        unittest.mock.call._are_deployments_stopped(deployment_dict),
+        unittest.mock.call._are_deployments_stopped(deployment_dict),
+    ]
+
+    assert mocked_are_deployments_stopped.mock_calls == expected_calls
