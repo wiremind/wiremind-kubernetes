@@ -3,7 +3,7 @@ kind: ExpectedDeploymentScale
 metadata:
   name: concerned
   labels:
-    release: concerned
+    app.kubernetes.io/instance: concerned
 spec:
   deploymentName: concerned
   expectedScale: 1
@@ -15,7 +15,7 @@ kind: ExpectedDeploymentScale
 metadata:
   name: concerned-very-high-priority
   labels:
-    release: concerned
+    app.kubernetes.io/instance: concerned
 spec:
   deploymentName: concerned-very-high-priority
   expectedScale: 1
@@ -28,7 +28,7 @@ kind: ExpectedDeploymentScale
 metadata:
   name: concerned-low-priority
   labels:
-    release: concerned
+    app.kubernetes.io/instance: concerned
 spec:
   deploymentName: concerned-low-priority
   expectedScale: 1
@@ -41,7 +41,7 @@ kind: ExpectedDeploymentScale
 metadata:
   name: concerned-high-priority
   labels:
-    release: concerned
+    app.kubernetes.io/instance: concerned
 spec:
   deploymentName: concerned-high-priority
   expectedScale: 1
@@ -52,33 +52,9 @@ spec:
 apiVersion: "wiremind.io/v1"
 kind: ExpectedDeploymentScale
 metadata:
-  name: concerned-new-style
-  labels:
-    app.kubernetes.io/instance: concerned
-spec:
-  deploymentName: concerned-new-style
-  expectedScale: 1
-
----
-
-apiVersion: "wiremind.io/v1"
-kind: ExpectedDeploymentScale
-metadata:
   name: unconcerned
   labels:
-    release: unconcerned
-spec:
-  deploymentName: unconcerned
-  expectedScale: 1
-
----
-
-apiVersion: "wiremind.io/v1"
-kind: ExpectedDeploymentScale
-metadata:
-  name: unconcerned-new-style
-  labels:
-    release: unconcerned
+    app.kubernetes.io/instance: unconcerned
 spec:
   deploymentName: unconcerned
   expectedScale: 1

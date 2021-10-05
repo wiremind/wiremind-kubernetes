@@ -14,6 +14,7 @@ absolute_path = os.path.dirname(os.path.join(os.path.abspath(wiremind_kubernetes
 TEST_NAMESPACE = "wiremind-kube-e2e-test"
 
 
+logging.getLogger("wiremind_kubernetes").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -64,9 +65,7 @@ def populate_cluster():
             logger.info("Waiting for deployments to be started...")
             if (
                 not concerned_dm.is_deployment_ready("concerned")
-                or not concerned_dm.is_deployment_ready("concerned-new-style")
                 or not unconcerned_dm.is_deployment_ready("unconcerned")
-                or not unconcerned_dm.is_deployment_ready("unconcerned-new-style")
             ):
                 logger.info("All Deployments not ready yet, waiting...")
                 run_command(f"kubectl get pods --namespace {TEST_NAMESPACE}")

@@ -23,6 +23,7 @@ class KubernetesHelper:
     """
     A simple helper for Kubernetes manipulation.
     """
+    SCALE_DOWN_MAX_WAIT_TIME = 3600
 
     def __init__(
         self,
@@ -135,30 +136,37 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         return self.is_deployment_stopped(deployment_name, statefulset=True)
 
     @retry_kubernetes_request_no_ignore
-    def is_deployment_stopped(self, deployment_name: str, statefulset: bool = False) -> bool:
-        logger.debug("Asking if deployment %s is stopped", deployment_name)
-        labels: Dict[str, str]
+    def _get_pods_from_deployment(self, deployment_name: str, statefulset: bool = False) -> List:
         if statefulset:
+            logger.debug("Asking if StatefulSet %s is stopped", deployment_name)
             labels = self.client_appsv1_api.read_namespaced_stateful_set(
                 deployment_name, self.namespace
             ).spec.selector.match_labels
         else:
+            logger.debug("Asking if Deployment %s is stopped", deployment_name)
             labels = self.client_appsv1_api.read_namespaced_deployment(
                 deployment_name, self.namespace
             ).spec.selector.match_labels
+
         try:
-            found_pods = self.client_corev1_api.list_namespaced_pod(
+            return self.client_corev1_api.list_namespaced_pod(
                 namespace=self.namespace, label_selector=",".join(["%s=%s" % kv for kv in labels.items()])
             ).items
         except kubernetes.client.rest.ApiException as e:
             if e.status == 404:
-                found_pods = []
+                return []
             else:
                 raise
 
-        current_scale = len(found_pods)
+    def is_deployment_stopped(self, deployment_name: str, statefulset: bool = False) -> bool:
+        pod_list: List = self._get_pods_from_deployment(deployment_name, statefulset)
 
-        logger.debug("%s has %s replicas", deployment_name, current_scale)
+        current_scale = 0
+        for pod in pod_list:
+            if pod.status.phase not in ("Failed"):
+                current_scale += 1
+
+        logger.info("%s StatefulSet/Deployment still has %s living replicas", deployment_name, current_scale)
         return (current_scale == 0) or self.dry_run
 
     def is_deployment_ready(self, deployment_name: str, statefulset: bool = False):
@@ -295,31 +303,24 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         else:
             logger.info("No Deployments to scale up")
 
+    def _are_deployments_stopped(self, deployment_dict: Dict[str, int]) -> bool:
+        for deployment_name in deployment_dict:
+            if not self.is_deployment_stopped(deployment_name):
+                return False
+        return True
+
     def _stop_deployments(self, deployment_dict: Dict[str, int]):
         """
         Scale down a dict (deployment_name, expected_scale) of Deployments.
-        Return True if any Deployment was scaled, False otherwise
         """
         for deployment_name in deployment_dict:
             self.scale_down_deployment(deployment_name)
-
-    def _wait_for_deployments_stopped(self, deployment_dict: Dict[str, int]):
-        length: int = len(deployment_dict)
-        for _ in range(3600):  # seconds
-            time.sleep(1)
-            stopped: int = 0
-
-            for deployment_name in deployment_dict:
-                if self.is_deployment_stopped(deployment_name):
-                    stopped += 1
-            if stopped == length:
-                return
+            for _ in range(self.SCALE_DOWN_MAX_WAIT_TIME):  # seconds
+                if self._are_deployments_stopped(deployment_dict):
+                    break
+                time.sleep(1)
             else:
-                logger.info("All pods not deleted yet. Waiting...")
-                # Retry stopping in case there deployment definition changed
-                self._stop_deployments(deployment_dict)
-        else:
-            raise Exception("Timed out waiting for pods to be deleted: aborting.")
+                raise Exception("Timed out waiting for pods to be deleted: aborting.")
 
     def stop_pods(self):
         """
@@ -336,17 +337,11 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
 
         priority: int
         priorities: List[int] = sorted(expected_deployment_scale_dict, reverse=True)
-        scaled: bool = False
         for priority in priorities:
             priority_dict: Dict[str, int] = expected_deployment_scale_dict[priority]
             if len(priority_dict):
                 self._stop_deployments(priority_dict)
-                self._wait_for_deployments_stopped(priority_dict)
-                scaled = True
-        if scaled:
-            logger.info("Done scaling down application Deployments, all Pods have been deleted")
-        else:
-            logger.info("No Deployments to scale down")
+        logger.info("Done scaling down application Deployments.")
 
     def generate_job(
         self,

@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.3.3 (2021-10-05)
+### Fixes
+- stop_pods: ignore failed (like Evicted) Pods, print what still needs to be stopped and simplify internal logic.
+
 ## v6.3.2 (2021-10-04)
 ### Fixes
 - setup.py: require kubernetes>=18.
