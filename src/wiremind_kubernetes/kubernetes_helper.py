@@ -169,7 +169,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
         if current_scale > 0:
             kind = statefulset and "StatefulSet" or "Deployment"
-            logger.info("%s %s still has %s living replicas", deployment_name, kind, current_scale)
+            logger.info("%s %s has %s living replicas", deployment_name, kind, current_scale)
             return False
         return True
 
@@ -317,17 +317,12 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         """
         Scale down a dict (deployment_name, expected_scale) of Deployments.
         """
-        for deployment_name in deployment_dict:
-            self.scale_down_deployment(deployment_name)
-        stopped = False
         for _ in range(self.SCALE_DOWN_MAX_WAIT_TIME):
             for deployment_name in deployment_dict:
-                stopped = self._are_deployments_stopped(deployment_dict)
-                if stopped:
-                    break
-                time.sleep(1)
-            if stopped:
+                self.scale_down_deployment(deployment_name)
+            if self._are_deployments_stopped(deployment_dict):
                 break
+            time.sleep(1)
         else:
             raise Exception("Timed out waiting for pods to be deleted: aborting.")
 

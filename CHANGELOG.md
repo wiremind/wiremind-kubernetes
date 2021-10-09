@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.3.5 (2021-10-06)
+### Fixes
+- stop_pods: harden logic.
+
 ## v6.3.4 (2021-10-06)
 ### Fixes
 - Add python 3.10 CI.
