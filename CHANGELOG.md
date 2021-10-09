@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.3.4 (2021-10-06)
+### Fixes
+- Add python 3.10 CI.
+
 ## v6.3.3 (2021-10-05)
 ### Fixes
 - stop_pods: ignore failed (like Evicted) Pods, print what still needs to be stopped and simplify internal logic.
