@@ -13,6 +13,7 @@ from .kubernetes_client_additional_arguments import (
     BatchV1ApiWithArguments,
     CoreV1ApiWithArguments,
     CustomObjectsApiWithArguments,
+    RbacAuthorizationV1ApiWithArguments,
 )
 from .utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
@@ -51,6 +52,9 @@ class KubernetesHelper:
         self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run)
         self.client_custom_objects_api: kubernetes.client.CustomObjectsApi = CustomObjectsApiWithArguments(
             dry_run=dry_run
+        )
+        self.client_rbac_authorization_v1_api: kubernetes.client.RbacAuthorizationV1Api = (
+            RbacAuthorizationV1ApiWithArguments(dry_run=dry_run)
         )
 
         self.dry_run: bool = dry_run
