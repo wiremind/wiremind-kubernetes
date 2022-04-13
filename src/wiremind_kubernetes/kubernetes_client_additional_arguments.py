@@ -58,3 +58,8 @@ class BatchV1ApiWithArguments(ClientWithArguments):
 class CustomObjectsApiWithArguments(ClientWithArguments):
     def __init__(self, *args, dry_run: bool = False, **kwargs):
         super().__init__(client=kubernetes.client.CustomObjectsApi, dry_run=dry_run)
+
+
+class RbacAuthorizationV1ApiWithArguments(ClientWithArguments):
+    def __init__(self, *args, dry_run: bool = False, **kwargs):
+        super().__init__(client=kubernetes.client.RbacAuthorizationV1Api, dry_run=dry_run)

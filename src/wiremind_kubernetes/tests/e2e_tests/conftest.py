@@ -63,9 +63,8 @@ def populate_cluster():
         ready = False
         for _ in range(1, 10):
             logger.info("Waiting for deployments to be started...")
-            if (
-                not concerned_dm.is_deployment_ready("concerned")
-                or not unconcerned_dm.is_deployment_ready("unconcerned")
+            if not concerned_dm.is_deployment_ready("concerned") or not unconcerned_dm.is_deployment_ready(
+                "unconcerned"
             ):
                 logger.info("All Deployments not ready yet, waiting...")
                 run_command(f"kubectl get pods --namespace {TEST_NAMESPACE}")

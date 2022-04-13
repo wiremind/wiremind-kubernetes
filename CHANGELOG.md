@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v6.4.0 (2022-04-13)
+### Feat
+- kubernetes: add support for RbacAuthorizationV1.
+
 ## v6.3.5 (2021-10-06)
 ### Fixes
 - stop_pods: harden logic.
