@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 # Side effect, but we don't really care
 KubernetesDeploymentManager.SCALE_DOWN_MAX_WAIT_TIME = 30
 
+# useless comment
 
 def are_deployments_ready(
     concerned_dm: KubernetesDeploymentManager, unconcerned_dm: KubernetesDeploymentManager
