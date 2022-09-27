@@ -3,12 +3,22 @@ import time
 
 import wiremind_kubernetes
 from wiremind_kubernetes import KubernetesDeploymentManager
+from wiremind_kubernetes.kubernetes_helper import HPA_ID_PREFIX
+from wiremind_kubernetes.tests.e2e_tests.conftest import TEST_NAMESPACE
+from wiremind_kubernetes.tests.e2e_tests.helpers import kubectl_get_json
 
 logger = logging.getLogger(__name__)
 
 
 # Side effect, but we don't really care
 KubernetesDeploymentManager.SCALE_DOWN_MAX_WAIT_TIME = 30
+
+
+def assert_hpa_scale_target_ref_name(*, hpa_name, scale_target_ref_name: str):
+    assert (
+        kubectl_get_json(resource="hpa", namespace=TEST_NAMESPACE, name=hpa_name)["spec"]["scaleTargetRef"]["name"]
+        == scale_target_ref_name
+    )
 
 
 def are_deployments_ready(
@@ -52,6 +62,10 @@ def test_stop_start_all(concerned_dm, unconcerned_dm, populate_cluster, mocker):
     assert concerned_dm.is_deployment_stopped("concerned-high-priority")
     assert not unconcerned_dm.is_deployment_stopped("unconcerned")
 
+    # concerned HPA were disabled
+    assert_hpa_scale_target_ref_name(hpa_name="concerned", scale_target_ref_name=f"{HPA_ID_PREFIX}-concerned")
+    assert_hpa_scale_target_ref_name(hpa_name="unconcerned", scale_target_ref_name="unconcerned")
+
     # Test stop order to see if we honor priority (for in-depth testing of priority, see unit tests)
     scale_down_call_list = spied_scale_down_deployment.call_args_list
     assert scale_down_call_list[0][0][1] == "concerned-very-high-priority"
@@ -69,3 +83,7 @@ def test_stop_start_all(concerned_dm, unconcerned_dm, populate_cluster, mocker):
     assert not concerned_dm.is_deployment_stopped("concerned-high-priority")
     assert not concerned_dm.is_deployment_stopped("concerned-very-high-priority")
     assert not unconcerned_dm.is_deployment_stopped("unconcerned")
+
+    # concerned HPA were re-enabled
+    assert_hpa_scale_target_ref_name(hpa_name="concerned", scale_target_ref_name="concerned")
+    assert_hpa_scale_target_ref_name(hpa_name="unconcerned", scale_target_ref_name="unconcerned")

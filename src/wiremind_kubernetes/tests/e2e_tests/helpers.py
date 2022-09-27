@@ -1,7 +1,11 @@
+import json
 import logging
 import subprocess
 import sys
 import urllib
+from typing import Any, Dict
+
+from wiremind_kubernetes import run_command
 
 logger = logging.getLogger(__name__)
 
@@ -44,3 +48,10 @@ def get_k8s_username():
     )
     assert username
     return username
+
+
+def kubectl_get_json(*, resource: str, namespace: str, name: str) -> Dict[str, Any]:
+    output, *_ = run_command(
+        f"kubectl get {resource} {name} -n {namespace} --ignore-not-found -o json", return_result=True
+    )
+    return json.loads(output or "{}")
