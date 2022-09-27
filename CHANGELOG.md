@@ -1,5 +1,10 @@
 # wiremind-kubernetes
 
+## v7.0.0 (2022-09-27)
+### BREAKING CHANGE
+- stop_pods: neutralize the HPA as `HPAScaleToZero` may be in use (HPA may scale up the Deployment even if replicas=0), a more straightforward solution will
+be available in the future see [here](https://github.com/kubernetes/enhancements/pull/2022). Of course `start_pods` repairs it. (encourage users to run this command to re-scale up).
+
 ## v6.4.0 (2022-04-13)
 ### Feat
 - kubernetes: add support for RbacAuthorizationV1.

@@ -1,7 +1,7 @@
 import logging
 import pprint
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Generator
 
 import kubernetes
 
@@ -10,6 +10,7 @@ from wiremind_kubernetes.exceptions import PodNotFound
 from .kube_config import load_kubernetes_config
 from .kubernetes_client_additional_arguments import (
     AppV1ApiWithArguments,
+    AutoscalingV1ApiWithArguments,
     BatchV1ApiWithArguments,
     CoreV1ApiWithArguments,
     CustomObjectsApiWithArguments,
@@ -18,6 +19,8 @@ from .kubernetes_client_additional_arguments import (
 from .utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
 logger = logging.getLogger(__name__)
+
+HPA_ID_PREFIX = "wm--disabled--kube"
 
 
 class KubernetesHelper:
@@ -50,6 +53,9 @@ class KubernetesHelper:
         self.client_corev1_api: kubernetes.client.CoreV1Api = CoreV1ApiWithArguments(dry_run=dry_run)
         self.client_appsv1_api: kubernetes.client.AppsV1Api = AppV1ApiWithArguments(dry_run=dry_run)
         self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run)
+        self.client_autoscalingv1_api: kubernetes.client.AutoscalingV1Api = AutoscalingV1ApiWithArguments(
+            dry_run=dry_run
+        )
         self.client_custom_objects_api: kubernetes.client.CustomObjectsApi = CustomObjectsApiWithArguments(
             dry_run=dry_run
         )
@@ -214,6 +220,16 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             raise PodNotFound("No matching pod was found in the namespace %s" % (namespace_name))
         return pod_list[0].metadata.name
 
+    def get_deployment_hpa(self, *, deployment_name: str) -> Generator:
+        for hpa in self.client_autoscalingv1_api.list_namespaced_horizontal_pod_autoscaler(self.namespace).items:
+            if hpa.spec.scale_target_ref.kind == "Deployment" and hpa.spec.scale_target_ref.name == deployment_name:
+                yield hpa
+
+    def patch_deployment_hpa(self, *, hpa_name: str, body: Any):
+        self.client_autoscalingv1_api.patch_namespaced_horizontal_pod_autoscaler(
+            name=hpa_name, namespace=self.namespace, body=body
+        )
+
 
 class KubernetesDeploymentManager(NamespacedKubernetesHelper):
     """
@@ -305,6 +321,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
             if len(priority_dict):
                 scaled = True
                 for (name, expected_scale) in priority_dict.items():
+                    self.re_enable_hpa(deployment_name=name)
                     self.scale_up_deployment(name, expected_scale)
         if scaled:
             logger.info("Done scaling up application Deployments")
@@ -317,12 +334,26 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
                 return False
         return True
 
+    @retry_kubernetes_request
+    def disable_hpa(self, *, deployment_name: str):
+        for hpa in self.get_deployment_hpa(deployment_name=deployment_name):
+            # Tell the hpa to manage a non-existing Deployment
+            hpa.spec.scale_target_ref.name = f"{HPA_ID_PREFIX}-{deployment_name}"
+            self.patch_deployment_hpa(hpa_name=hpa.metadata.name, body=hpa)
+
+    @retry_kubernetes_request
+    def re_enable_hpa(self, *, deployment_name: str):
+        for hpa in self.get_deployment_hpa(deployment_name=f"{HPA_ID_PREFIX}-{deployment_name}"):
+            hpa.spec.scale_target_ref.name = deployment_name
+            self.patch_deployment_hpa(hpa_name=hpa.metadata.name, body=hpa)
+
     def _stop_deployments(self, deployment_dict: Dict[str, int]):
         """
         Scale down a dict (deployment_name, expected_scale) of Deployments.
         """
         for _ in range(self.SCALE_DOWN_MAX_WAIT_TIME):
             for deployment_name in deployment_dict:
+                self.disable_hpa(deployment_name=deployment_name)
                 self.scale_down_deployment(deployment_name)
             if self._are_deployments_stopped(deployment_dict):
                 break

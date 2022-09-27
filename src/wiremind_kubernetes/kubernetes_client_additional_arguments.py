@@ -1,5 +1,6 @@
-import kubernetes.client
 from typing import Any, Dict
+
+import kubernetes.client
 
 
 class ClientWithArguments:
@@ -53,6 +54,11 @@ class AppV1ApiWithArguments(ClientWithArguments):
 class BatchV1ApiWithArguments(ClientWithArguments):
     def __init__(self, *args, dry_run: bool = False, **kwargs):
         super().__init__(client=kubernetes.client.BatchV1Api, dry_run=dry_run)
+
+
+class AutoscalingV1ApiWithArguments(ClientWithArguments):
+    def __init__(self, *args, dry_run: bool = False, **kwargs):
+        super().__init__(client=kubernetes.client.AutoscalingV1Api, dry_run=dry_run)
 
 
 class CustomObjectsApiWithArguments(ClientWithArguments):
