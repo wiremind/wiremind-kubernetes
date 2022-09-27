@@ -31,3 +31,13 @@ In case of some Pods being slow to be deleted and others serving web server, thi
 - The diagram has been drawn using the free online software https://draw.io, the
 source code is located at `documentation/schema-stop-pods.png`, feel free
 to correct it or make it more understandable.
+
+## stop-pods with HPA
+
+`KubernetesDeploymentManager.stop_pods()` neutralizes HPA managing the Deployments if any, as `HPAScaleToZero`
+(see [here](https://github.com/kubernetes/kubernetes/pull/74526)) may be in use (HPA may scale up the Deployment even if its `replicas=0`),
+a more straightforward solution will be available in the future see
+[here](https://github.com/kubernetes/enhancements/pull/2022). Of course `KubernetesDeploymentManager.start_pods()` repairs it.
+It is encouraged to run this to re-scale up.
+
+See this [PR](https://github.com/wiremind/wiremind-kubernetes/commit/3990f00d1fff8b74b68e555321671be95b64b9b6) for more details.
