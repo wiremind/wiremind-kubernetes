@@ -1,7 +1,9 @@
+from pytest_mock import MockerFixture
+
 import wiremind_kubernetes.kubernetes_helper
 
 
-def test_kubernetes_client_additional_arguments_core_v1_api(mocker):
+def test_kubernetes_client_additional_arguments_core_v1_api(mocker: MockerFixture) -> None:
     """
     Test that we add mandatory args to each function call of kubernetes client
     """

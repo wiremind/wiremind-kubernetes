@@ -10,7 +10,7 @@ from wiremind_kubernetes import run_command
 logger = logging.getLogger(__name__)
 
 
-def check_not_using_wiremind_cluster():
+def check_not_using_wiremind_cluster() -> None:
     """
     Will sys.exit(1) if kubectl current context api server is not a test cluster (like kind, minikube, etc)
     """
@@ -32,7 +32,7 @@ def check_not_using_wiremind_cluster():
         sys.exit(1)
 
 
-def get_k8s_username():
+def get_k8s_username() -> str:
     """
     Return the Kind cluster's username.
     """

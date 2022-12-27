@@ -3,17 +3,18 @@ import logging
 import shlex
 import subprocess
 import time
-from typing import Callable, List, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import kubernetes
+
 from wiremind_kubernetes.exceptions import ExecError
 
 logger = logging.getLogger(__name__)
 
 
 def run_command(
-    command: Union[List, str], return_result: bool = False, line_callback: Union[Callable, None] = None, **kw_args
-):
+    command: Union[List, str], return_result: bool = False, line_callback: Union[Callable, None] = None, **kw_args: Any
+) -> Tuple[str, str, int]:
     """
     Run command, print stdout/stderr, check that command exited correctly, return stdout/err
     """
@@ -30,7 +31,7 @@ def run_command(
     else:
         interpreted_command = command
 
-    process = subprocess.Popen(  # type: ignore
+    process = subprocess.Popen(
         interpreted_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, **kw_args
     )
 
@@ -46,14 +47,16 @@ def run_command(
     if process.returncode:
         raise subprocess.CalledProcessError(process.returncode, command)
 
+    return "", "", 0
 
-def retry_kubernetes_request(function):
+
+def retry_kubernetes_request(function: Callable) -> Callable:
     """
     Decorator that retries a failed Kubernetes API request if needed and ignores 404
     """
 
     @functools.wraps(function)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return function(*args, **kwargs)
         except kubernetes.client.rest.ApiException as e:
@@ -70,13 +73,13 @@ def retry_kubernetes_request(function):
     return wrapper
 
 
-def retry_kubernetes_request_no_ignore(function):
+def retry_kubernetes_request_no_ignore(function: Callable) -> Callable:
     """
     Decorator that retries a failed Kubernetes API request if needed and do NOT ignore 404 (raise if 404)
     """
 
     @functools.wraps(function)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return function(*args, **kwargs)
         except kubernetes.client.rest.ApiException as e:
@@ -92,7 +95,9 @@ def retry_kubernetes_request_no_ignore(function):
     return wrapper
 
 
-def kubernetes_exec(commands, api, pod_name, namespace_name, container_name=None):
+def kubernetes_exec(
+    commands: List[str], api: Any, pod_name: str, namespace_name: str, container_name: Optional[str] = None
+) -> None:
     logger.info('Connecting to "%s" pod from "%s" namespace', pod_name, namespace_name)
     resp = kubernetes.stream.stream(
         api.connect_get_namespaced_pod_exec,

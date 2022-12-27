@@ -1,7 +1,7 @@
 import logging
 import pprint
 import time
-from typing import Any, Dict, List, Optional, Union, Generator
+from typing import Any, Dict, Generator, List, Optional, Union
 
 import kubernetes
 
@@ -105,15 +105,15 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         else:
             self.namespace = _get_namespace_from_kube()
 
-    def get_deployment_scale(self, deployment_name: str):
+    def get_deployment_scale(self, deployment_name: str) -> kubernetes.client.V1Scale:
         logger.debug("Getting deployment scale for %s", deployment_name)
         return self.client_appsv1_api.read_namespaced_deployment_scale(deployment_name, self.namespace)
 
-    def get_statefulset_scale(self, statefulset_name: str):
+    def get_statefulset_scale(self, statefulset_name: str) -> kubernetes.client.V1Scale:
         logger.debug("Getting statefulset scale for %s", statefulset_name)
         return self.client_appsv1_api.read_namespaced_stateful_set_scale(statefulset_name, self.namespace)
 
-    def scale_down_statefulset(self, statefulset_name: str):
+    def scale_down_statefulset(self, statefulset_name: str) -> None:
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Deleting all Pods for %s", statefulset_name)
         body.spec.replicas = 0
@@ -121,14 +121,14 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         logger.debug("Done deleting.")
 
     @retry_kubernetes_request_no_ignore
-    def scale_down_deployment(self, deployment_name: str):
+    def scale_down_deployment(self, deployment_name: str) -> None:
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Deleting all Pods for %s", deployment_name)
         body.spec.replicas = 0
         self.client_appsv1_api.patch_namespaced_deployment_scale(deployment_name, self.namespace, body)
         logger.debug("Done deleting.")
 
-    def scale_up_statefulset(self, statefulset_name: str, pod_amount: int = 1):
+    def scale_up_statefulset(self, statefulset_name: str, pod_amount: int = 1) -> None:
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Recreating backend Pods for %s", statefulset_name)
         body.spec.replicas = pod_amount
@@ -136,7 +136,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         logger.debug("Done recreating.")
 
     @retry_kubernetes_request_no_ignore
-    def scale_up_deployment(self, deployment_name: str, pod_amount: int):
+    def scale_up_deployment(self, deployment_name: str, pod_amount: int) -> None:
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Recreating backend Pods for %s", deployment_name)
         body.spec.replicas = pod_amount
@@ -183,7 +183,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             return False
         return True
 
-    def is_deployment_ready(self, deployment_name: str, statefulset: bool = False):
+    def is_deployment_ready(self, deployment_name: str, statefulset: bool = False) -> bool:
         if statefulset:
             status = self.client_appsv1_api.read_namespaced_stateful_set_status(deployment_name, self.namespace)
         else:
@@ -203,7 +203,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         return expected_replicas == ready_replicas
 
     @retry_kubernetes_request
-    def getPodNameFromDeployment(self, deployment_name, namespace_name):
+    def getPodNameFromDeployment(self, deployment_name: str, namespace_name: str) -> str:
         """
         From a given deployment, get the first pod name
         """
@@ -225,7 +225,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             if hpa.spec.scale_target_ref.kind == "Deployment" and hpa.spec.scale_target_ref.name == deployment_name:
                 yield hpa
 
-    def patch_deployment_hpa(self, *, hpa_name: str, body: Any):
+    def patch_deployment_hpa(self, *, hpa_name: str, body: Any) -> None:
         self.client_autoscalingv1_api.patch_namespaced_horizontal_pod_autoscaler(
             name=hpa_name, namespace=self.namespace, body=body
         )
@@ -245,7 +245,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
     a.start_pods()
     """
 
-    def __init__(self, release_name: str, **kwargs):
+    def __init__(self, release_name: str, **kwargs: Any):
         self.release_name = release_name
         super().__init__(**kwargs)
 
@@ -300,7 +300,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         logger.debug("Deployments are %s", pprint.pformat(eds_dict))
         return eds_dict
 
-    def start_pods(self):
+    def start_pods(self) -> None:
         """
         Start all Pods that should be started
         """
@@ -335,19 +335,19 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         return True
 
     @retry_kubernetes_request
-    def disable_hpa(self, *, deployment_name: str):
+    def disable_hpa(self, *, deployment_name: str) -> None:
         for hpa in self.get_deployment_hpa(deployment_name=deployment_name):
             # Tell the hpa to manage a non-existing Deployment
             hpa.spec.scale_target_ref.name = f"{HPA_ID_PREFIX}-{deployment_name}"
             self.patch_deployment_hpa(hpa_name=hpa.metadata.name, body=hpa)
 
     @retry_kubernetes_request
-    def re_enable_hpa(self, *, deployment_name: str):
+    def re_enable_hpa(self, *, deployment_name: str) -> None:
         for hpa in self.get_deployment_hpa(deployment_name=f"{HPA_ID_PREFIX}-{deployment_name}"):
             hpa.spec.scale_target_ref.name = deployment_name
             self.patch_deployment_hpa(hpa_name=hpa.metadata.name, body=hpa)
 
-    def _stop_deployments(self, deployment_dict: Dict[str, int]):
+    def _stop_deployments(self, deployment_dict: Dict[str, int]) -> None:
         """
         Scale down a dict (deployment_name, expected_scale) of Deployments.
         """
@@ -361,7 +361,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         else:
             raise Exception("Timed out waiting for pods to be deleted: aborting.")
 
-    def stop_pods(self):
+    def stop_pods(self) -> None:
         """
         Scale to 0 all deployments for which an ExpectedDeploymentScale links to.
         stop all deployments, then wait for actual stop, by priority (descending order):
@@ -446,14 +446,14 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         except kubernetes.client.rest.ApiException as e:
             print("Exception when calling BatchV1Api->create_namespaced_job: %s\n" % e)
 
-    def get_job(self, job_name) -> kubernetes.client.V1Job:
+    def get_job(self, job_name: str) -> kubernetes.client.V1Job:
         """
         Get a job, concatenating release_name and job_name as job name.
         """
         job_name = f"{self.release_name}-{job_name}"
         return self.client_batchv1_api.read_namespaced_job(job_name, self.namespace)
 
-    def delete_job(self, job_name):
+    def delete_job(self, job_name: str) -> kubernetes.client.V1Status:
         """
         Get a job, concatenating release_name and job_name as job name.
         """

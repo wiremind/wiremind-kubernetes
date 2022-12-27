@@ -1,7 +1,9 @@
+from pytest_mock import MockerFixture
+
 import wiremind_kubernetes
 
 
-def test_is_deployment_stopped_ignores_failed(mocker):
+def test_is_deployment_stopped_ignores_failed(mocker: MockerFixture) -> None:
     """
     Test that we don't consider failed (like evicted) Pods as living Pods
     """

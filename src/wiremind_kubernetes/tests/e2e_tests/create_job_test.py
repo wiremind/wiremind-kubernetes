@@ -3,13 +3,16 @@ import pprint
 import time
 
 import kubernetes
+from pytest_mock import MockerFixture
+
+from wiremind_kubernetes import KubernetesDeploymentManager
 
 from .conftest import TEST_NAMESPACE
 
 logger = logging.getLogger(__name__)
 
 
-def test_create_job(concerned_dm, create_namespace):
+def test_create_job(concerned_dm: KubernetesDeploymentManager, create_namespace: MockerFixture) -> None:
     """
     Test that default create job and delete job work as expected
     """
@@ -59,7 +62,7 @@ def test_create_job(concerned_dm, create_namespace):
     assert not pod_list
 
 
-def test_create_job_argument(concerned_dm, create_namespace):
+def test_create_job_argument(concerned_dm: KubernetesDeploymentManager, create_namespace: MockerFixture) -> None:
     """
     Test that create job with command / args works and finishes as expected
     """
