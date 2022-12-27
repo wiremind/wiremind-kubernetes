@@ -10,9 +10,13 @@ class ClientWithArguments:
     Currently add dry_run support for write functions and pretty to all.
     """
 
-    def __init__(self, client: Any, dry_run: bool = False):
+    def __init__(self, client: Any, dry_run: bool = False, pretty: bool = True):
         self.client = client()  # like kubernetes.client.CoreV1Api
-        self.read_additional_arguments: Dict[str, Any] = dict(pretty=True)
+        self.read_additional_arguments: Dict[str, Any] = {}
+        # Only add it when its true because we set pretty client wide,
+        # read_cluster_custom_object which accepts it will not have it set, but it's ok for now.
+        if pretty:
+            self.read_additional_arguments["pretty"] = pretty
         # Every request, either read or write, will have those arguments added
         self.additional_arguments: Dict[str, Any] = self.read_additional_arguments.copy()
         if dry_run:
@@ -42,30 +46,30 @@ class ClientWithArguments:
 
 
 class CoreV1ApiWithArguments(ClientWithArguments):
-    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
-        super().__init__(client=kubernetes.client.CoreV1Api, dry_run=dry_run)
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.CoreV1Api, dry_run=dry_run, pretty=pretty)
 
 
 class AppV1ApiWithArguments(ClientWithArguments):
-    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
-        super().__init__(client=kubernetes.client.AppsV1Api, dry_run=dry_run)
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.AppsV1Api, dry_run=dry_run, pretty=pretty)
 
 
 class BatchV1ApiWithArguments(ClientWithArguments):
-    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
-        super().__init__(client=kubernetes.client.BatchV1Api, dry_run=dry_run)
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.BatchV1Api, dry_run=dry_run, pretty=pretty)
 
 
 class AutoscalingV1ApiWithArguments(ClientWithArguments):
-    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
-        super().__init__(client=kubernetes.client.AutoscalingV1Api, dry_run=dry_run)
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.AutoscalingV1Api, dry_run=dry_run, pretty=pretty)
 
 
 class CustomObjectsApiWithArguments(ClientWithArguments):
-    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
-        super().__init__(client=kubernetes.client.CustomObjectsApi, dry_run=dry_run)
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.CustomObjectsApi, dry_run=dry_run, pretty=pretty)
 
 
 class RbacAuthorizationV1ApiWithArguments(ClientWithArguments):
-    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
-        super().__init__(client=kubernetes.client.RbacAuthorizationV1Api, dry_run=dry_run)
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.RbacAuthorizationV1Api, dry_run=dry_run, pretty=pretty)
