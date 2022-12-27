@@ -4,11 +4,11 @@ import pytest
 from wiremind_kubernetes.utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
 
-def test_no_retry_required():
+def test_no_retry_required() -> None:
     counter = 0
 
     @retry_kubernetes_request
-    def succeeds():
+    def succeeds() -> str:
         nonlocal counter
         counter += 1
         return "success"
@@ -19,11 +19,11 @@ def test_no_retry_required():
     assert counter == 1
 
 
-def test_retries_once():
+def test_retries_once() -> None:
     counter = 0
 
     @retry_kubernetes_request
-    def fails_once():
+    def fails_once() -> str:
         nonlocal counter
         counter += 1
         if counter < 2:
@@ -36,11 +36,11 @@ def test_retries_once():
     assert counter == 2
 
 
-def test_limit_is_reached():
+def test_limit_is_reached() -> None:
     counter = 0
 
     @retry_kubernetes_request
-    def always_fails():
+    def always_fails() -> None:
         nonlocal counter
         counter += 1
         raise kubernetes.client.rest.ApiException("failed")
@@ -50,11 +50,11 @@ def test_limit_is_reached():
     assert counter == 2
 
 
-def test_404_correctly_handled():
+def test_404_correctly_handled() -> None:
     counter = 0
 
     @retry_kubernetes_request
-    def notfound():
+    def notfound() -> None:
         nonlocal counter
         counter += 1
         raise kubernetes.client.rest.ApiException(status=404)
@@ -65,14 +65,14 @@ def test_404_correctly_handled():
     assert counter == 1
 
 
-def test_404_correctly_ignored():
+def test_404_correctly_ignored() -> None:
     """
     test that retry_kubernetes_request_no_ignore raises if 404 and does not retry
     """
     counter = 0
 
     @retry_kubernetes_request_no_ignore
-    def notfound():
+    def notfound() -> None:
         nonlocal counter
         counter += 1
         raise kubernetes.client.rest.ApiException(status=404)

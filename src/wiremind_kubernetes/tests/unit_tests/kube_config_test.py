@@ -1,21 +1,24 @@
 import os
-from typing import Dict, Optional
+from typing import Dict, Generator, Optional
 
 import kubernetes
 import pytest
+from pytest_mock import MockerFixture
+
 import wiremind_kubernetes
 from wiremind_kubernetes.kube_config import load_kubernetes_config
 
 
 @pytest.fixture(scope="module", autouse=True)
-def clean_os_environ():
+def clean_os_environ() -> Generator:
     """
     Get rid of the env var "CLASSIC_K8S_CONFIG", this will be set if needed using tests parameterization
     """
     old_os_environ = os.environ.copy()
     os.environ.pop("CLASSIC_K8S_CONFIG", None)
     yield
-    os.environ = old_os_environ
+    os.environ.clear()
+    os.environ.update(old_os_environ)
 
 
 @pytest.mark.parametrize(
@@ -110,8 +113,8 @@ def test_load_kubernetes_config_1(
     extra_env_vars: Dict[str, str],
     service_token_present: bool,
     should_call: Optional[str],
-    mocker,
-):
+    mocker: MockerFixture,
+) -> None:
     """
     Test that load_kubernetes_config calls the right kube loading function, when needed, with the right parameters.
     Only relevant cases are tested.

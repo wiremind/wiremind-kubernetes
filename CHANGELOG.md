@@ -1,5 +1,10 @@
 # wiremind-kubernetes
 
+## v7.0.1 (2022-12-27)
+### Fix
+- setup.cfg correct mypy and flake8 config
+- mypy errors
+
 ## v7.0.0 (2022-09-27)
 ### BREAKING CHANGE
 - stop_pods: neutralize the HPA as `HPAScaleToZero` may be in use (HPA may scale up the Deployment even if replicas=0), a more straightforward solution will

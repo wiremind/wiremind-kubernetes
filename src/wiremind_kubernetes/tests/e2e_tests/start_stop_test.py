@@ -1,6 +1,8 @@
 import logging
 import time
 
+from pytest_mock import MockerFixture
+
 import wiremind_kubernetes
 from wiremind_kubernetes import KubernetesDeploymentManager
 from wiremind_kubernetes.kubernetes_helper import HPA_ID_PREFIX
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 KubernetesDeploymentManager.SCALE_DOWN_MAX_WAIT_TIME = 30
 
 
-def assert_hpa_scale_target_ref_name(*, hpa_name, scale_target_ref_name: str):
+def assert_hpa_scale_target_ref_name(*, hpa_name: str, scale_target_ref_name: str) -> None:
     assert (
         kubectl_get_json(resource="hpa", namespace=TEST_NAMESPACE, name=hpa_name)["spec"]["scaleTargetRef"]["name"]
         == scale_target_ref_name
@@ -32,7 +34,9 @@ def are_deployments_ready(
     )
 
 
-def wait_for_deployments_ready(concerned_dm: KubernetesDeploymentManager, unconcerned_dm: KubernetesDeploymentManager):
+def wait_for_deployments_ready(
+    concerned_dm: KubernetesDeploymentManager, unconcerned_dm: KubernetesDeploymentManager
+) -> None:
     for _ in range(1, 10):
         logger.info("Waiting for deployments to be started...")
         if not are_deployments_ready(concerned_dm, unconcerned_dm):
@@ -45,7 +49,12 @@ def wait_for_deployments_ready(concerned_dm: KubernetesDeploymentManager, unconc
         assert are_deployments_ready(concerned_dm, unconcerned_dm)  # Last chance
 
 
-def test_stop_start_all(concerned_dm, unconcerned_dm, populate_cluster, mocker):
+def test_stop_start_all(
+    concerned_dm: KubernetesDeploymentManager,
+    unconcerned_dm: KubernetesDeploymentManager,
+    populate_cluster: MockerFixture,
+    mocker: MockerFixture,
+) -> None:
     """
     Test that we stop/start all deployments that have an EDS in the namespace default
     and only them.

@@ -1,13 +1,15 @@
 import logging
 import os
 import time
+from typing import Generator
 
 import kubernetes
 import pytest
+from pytest_mock import MockerFixture
 
 import wiremind_kubernetes
-from wiremind_kubernetes.utils import run_command
 from wiremind_kubernetes.tests.e2e_tests.helpers import check_not_using_wiremind_cluster
+from wiremind_kubernetes.utils import run_command
 
 E2E_CLUSTER_MANIFESTS = "tests/e2e_tests/manifests"
 absolute_path = os.path.dirname(os.path.join(os.path.abspath(wiremind_kubernetes.__file__)))
@@ -19,23 +21,23 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
-def k8s_client_request_function(mocker):
+def k8s_client_request_function(mocker: MockerFixture) -> Generator:
     yield mocker.spy(kubernetes.client.api_client.ApiClient, "request")
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setUpE2E():
+def setUpE2E() -> None:
     check_not_using_wiremind_cluster()
 
 
-def delete_namespace():
+def delete_namespace() -> None:
     run_command(
         f"kubectl delete namespace {TEST_NAMESPACE} --wait --grace-period=1",
     )
 
 
 @pytest.fixture
-def populate_cluster():
+def populate_cluster() -> Generator[None, None, None]:
     run_command(
         f"kubectl apply -f {absolute_path}/../../CustomResourceDefinition-expecteddeploymentscales.yaml",
     )
@@ -87,7 +89,7 @@ def populate_cluster():
 
 
 @pytest.fixture
-def create_namespace():
+def create_namespace() -> Generator[None, None, None]:
     run_command(
         f"kubectl create namespace {TEST_NAMESPACE}",
     )
@@ -105,7 +107,7 @@ def create_namespace():
 
 
 @pytest.fixture
-def concerned_dm():
+def concerned_dm() -> wiremind_kubernetes.KubernetesDeploymentManager:
     return wiremind_kubernetes.KubernetesDeploymentManager(
         use_kubeconfig=True,
         namespace=TEST_NAMESPACE,
@@ -114,7 +116,7 @@ def concerned_dm():
 
 
 @pytest.fixture
-def unconcerned_dm():
+def unconcerned_dm() -> wiremind_kubernetes.KubernetesDeploymentManager:
     return wiremind_kubernetes.KubernetesDeploymentManager(
         use_kubeconfig=True,
         namespace=TEST_NAMESPACE,

@@ -1,11 +1,12 @@
 import subprocess
 
 import pytest
+from pytest_mock import MockerFixture
 
-from wiremind_kubernetes.utils import run_command, logger
+from wiremind_kubernetes.utils import logger, run_command
 
 
-def test_run_command_succeeded(mocker):
+def test_run_command_succeeded(mocker: MockerFixture) -> None:
     """
     Test that running a working command works as expected.
     """
@@ -23,7 +24,7 @@ def test_run_command_succeeded(mocker):
     log_spy.assert_called_with("lol")
 
 
-def test_run_command_with_array_succeeded(mocker):
+def test_run_command_with_array_succeeded(mocker: MockerFixture) -> None:
     """
     Test that running a working command given through array works as expected.
     """
@@ -41,7 +42,7 @@ def test_run_command_with_array_succeeded(mocker):
     log_spy.assert_called_with("lol")
 
 
-def test_run_command_succeeded_return_result(mocker):
+def test_run_command_succeeded_return_result(mocker: MockerFixture) -> None:
     """
     Test that running a working command using return_result=True works as expected.
     """
@@ -61,13 +62,13 @@ def test_run_command_succeeded_return_result(mocker):
     assert returncode == 0
 
 
-def test_run_command_succeeded_line_callback(mocker):
+def test_run_command_succeeded_line_callback(mocker: MockerFixture) -> None:
     """
     Test that running a working command using a custom line_callback works as expected.
     """
     result = []
 
-    def line_callback(line):
+    def line_callback(line: str) -> None:
         nonlocal result
         result.append(line)
 
@@ -85,7 +86,7 @@ def test_run_command_succeeded_line_callback(mocker):
     assert result == ["lol"]
 
 
-def test_run_command_failed(mocker):
+def test_run_command_failed(mocker: MockerFixture) -> None:
     """
     Test that running a failing command works as expected.
     """
@@ -100,7 +101,7 @@ def test_run_command_failed(mocker):
     )
 
 
-def test_run_command_failed_still_show_output(mocker):
+def test_run_command_failed_still_show_output(mocker: MockerFixture) -> None:
     """
     Test that running a failing command still returns its output.
     """
@@ -112,7 +113,7 @@ def test_run_command_failed_still_show_output(mocker):
     log_spy.assert_called_with("lol")
 
 
-def test_run_command_failed_return_result(mocker):
+def test_run_command_failed_return_result(mocker: MockerFixture) -> None:
     """
     Test that running a failing command using return_result=True works as expected.
     """
@@ -123,13 +124,13 @@ def test_run_command_failed_return_result(mocker):
     assert returncode == 1
 
 
-def test_run_command_failed_line_callback(mocker):
+def test_run_command_failed_line_callback(mocker: MockerFixture) -> None:
     """
     Test that running a failing command using custom line_callback works as expected.
     """
     result = []
 
-    def line_callback(line):
+    def line_callback(line: str) -> None:
         nonlocal result
         result.append(line)
 
@@ -139,7 +140,7 @@ def test_run_command_failed_line_callback(mocker):
     assert result == ["lol"]
 
 
-def test_run_command_honors_args(mocker):
+def test_run_command_honors_args(mocker: MockerFixture) -> None:
     """
     Test that run_command honors kwargs.
     """
