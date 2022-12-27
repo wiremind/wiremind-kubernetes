@@ -34,6 +34,7 @@ class KubernetesHelper:
         self,
         use_kubeconfig: bool = False,
         dry_run: bool = False,
+        pretty: bool = True,
         should_load_kubernetes_config: bool = True,
         context: Optional[str] = None,
     ):
@@ -50,20 +51,21 @@ class KubernetesHelper:
         """
         if should_load_kubernetes_config:
             load_kubernetes_config(use_kubeconfig=use_kubeconfig, context=context)
-        self.client_corev1_api: kubernetes.client.CoreV1Api = CoreV1ApiWithArguments(dry_run=dry_run)
-        self.client_appsv1_api: kubernetes.client.AppsV1Api = AppV1ApiWithArguments(dry_run=dry_run)
-        self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run)
+        self.client_corev1_api: kubernetes.client.CoreV1Api = CoreV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_appsv1_api: kubernetes.client.AppsV1Api = AppV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
         self.client_autoscalingv1_api: kubernetes.client.AutoscalingV1Api = AutoscalingV1ApiWithArguments(
-            dry_run=dry_run
+            dry_run=dry_run, pretty=pretty
         )
         self.client_custom_objects_api: kubernetes.client.CustomObjectsApi = CustomObjectsApiWithArguments(
-            dry_run=dry_run
+            dry_run=dry_run, pretty=pretty
         )
         self.client_rbac_authorization_v1_api: kubernetes.client.RbacAuthorizationV1Api = (
-            RbacAuthorizationV1ApiWithArguments(dry_run=dry_run)
+            RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
         )
 
         self.dry_run: bool = dry_run
+        self.pretty: bool = pretty
 
 
 def _get_namespace_from_kube() -> str:

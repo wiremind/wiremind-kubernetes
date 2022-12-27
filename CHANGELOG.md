@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.1.0 (2022-12-27)
+### Feature
+- ClientWithArguments, KubernetesHelper: make pretty parameter customizable
+
 ## v7.0.1 (2022-12-27)
 ### Fix
 - setup.cfg correct mypy and flake8 config
