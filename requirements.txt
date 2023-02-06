@@ -18,7 +18,7 @@ idna==3.4
     # via requests
 kubernetes==24.2.0
     # via wiremind-kubernetes (setup.py)
-oauthlib==3.2.1
+oauthlib==3.2.2
     # via requests-oauthlib
 pyasn1==0.4.8
     # via
