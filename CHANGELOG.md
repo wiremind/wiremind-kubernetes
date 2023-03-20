@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.1.1 (2023-03-20)
+### Fix
+- utils: `run_command` log the command to run at debug instead of info level.
+
 ## v7.1.0 (2022-12-27)
 ### Feature
 - ClientWithArguments, KubernetesHelper: make pretty parameter customizable

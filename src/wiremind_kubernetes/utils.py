@@ -18,7 +18,7 @@ def run_command(
     """
     Run command, print stdout/stderr, check that command exited correctly, return stdout/err
     """
-    logger.info("Running %s", command)
+    logger.debug(f"Running {command}")
     if line_callback and return_result:
         raise ValueError("line_callback and return_result parameters are mutually incompatible.")
 
