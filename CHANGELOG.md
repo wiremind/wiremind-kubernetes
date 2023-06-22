@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.2.0 (2023-06-22)
+### Feature
+- kubernetes: support NetworkingV1Api
+
 ## v7.1.1 (2023-03-20)
 ### Fix
 - utils: `run_command` log the command to run at debug instead of info level.
