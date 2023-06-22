@@ -9,13 +9,10 @@ from wiremind_kubernetes.exceptions import PodNotFound
 
 from .kube_config import load_kubernetes_config
 from .kubernetes_client_additional_arguments import (
-    AppV1ApiWithArguments,
-    AutoscalingV1ApiWithArguments,
-    BatchV1ApiWithArguments,
-    CoreV1ApiWithArguments,
-    CustomObjectsApiWithArguments,
-    RbacAuthorizationV1ApiWithArguments,
-)
+    AppV1ApiWithArguments, AutoscalingV1ApiWithArguments,
+    BatchV1ApiWithArguments, CoreV1ApiWithArguments,
+    CustomObjectsApiWithArguments, NetworkingV1ApiWithArguments,
+    RbacAuthorizationV1ApiWithArguments)
 from .utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
 logger = logging.getLogger(__name__)
@@ -62,6 +59,9 @@ class KubernetesHelper:
         )
         self.client_rbac_authorization_v1_api: kubernetes.client.RbacAuthorizationV1Api = (
             RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
+        self.client_networking_v1_api: kubernetes.client.NetworkingV1Api = NetworkingV1ApiWithArguments(
+            dry_run=dry_run, pretty=pretty
         )
 
         self.dry_run: bool = dry_run
