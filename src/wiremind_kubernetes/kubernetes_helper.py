@@ -15,6 +15,7 @@ from .kubernetes_client_additional_arguments import (
     CustomObjectsApiWithArguments,
     NetworkingV1ApiWithArguments,
     RbacAuthorizationV1ApiWithArguments,
+    StorageV1ApiWithArguments,
 )
 from .utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
@@ -64,6 +65,9 @@ class KubernetesHelper:
             RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
         )
         self.client_networking_v1_api: kubernetes.client.NetworkingV1Api = NetworkingV1ApiWithArguments(
+            dry_run=dry_run, pretty=pretty
+        )
+        self.client_storage_v1_api: kubernetes.client.StorageV1Api = StorageV1ApiWithArguments(
             dry_run=dry_run, pretty=pretty
         )
 
