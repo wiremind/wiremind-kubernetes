@@ -8,7 +8,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 import wiremind_kubernetes
-from wiremind_kubernetes.tests.e2e_tests.helpers import check_not_using_wiremind_cluster
+from wiremind_kubernetes.tests.e2e_tests.helpers import check_using_test_cluster
 from wiremind_kubernetes.utils import run_command
 
 E2E_CLUSTER_MANIFESTS = "tests/e2e_tests/manifests"
@@ -27,7 +27,7 @@ def k8s_client_request_function(mocker: MockerFixture) -> Generator:
 
 @pytest.fixture(scope="session", autouse=True)
 def setUpE2E() -> None:
-    check_not_using_wiremind_cluster()
+    check_using_test_cluster()
 
 
 def delete_namespace() -> None:

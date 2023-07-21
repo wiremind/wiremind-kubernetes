@@ -1,7 +1,7 @@
 """
 wiremind-kubernetes
 """
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 with open("VERSION") as version_file:
     version = version_file.read().strip()
@@ -18,6 +18,8 @@ extra_require_dev = (
     [
         "flake8",
         "black",
+        "isort",
+        "bandit",
         "flake8-mutable",
         "pip-tools>=3.7.0",
         "pyupgrade",

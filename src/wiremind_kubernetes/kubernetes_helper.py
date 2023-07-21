@@ -6,13 +6,16 @@ from typing import Any, Dict, Generator, List, Optional, Union
 import kubernetes
 
 from wiremind_kubernetes.exceptions import PodNotFound
-
 from .kube_config import load_kubernetes_config
 from .kubernetes_client_additional_arguments import (
-    AppV1ApiWithArguments, AutoscalingV1ApiWithArguments,
-    BatchV1ApiWithArguments, CoreV1ApiWithArguments,
-    CustomObjectsApiWithArguments, NetworkingV1ApiWithArguments,
-    RbacAuthorizationV1ApiWithArguments)
+    AppV1ApiWithArguments,
+    AutoscalingV1ApiWithArguments,
+    BatchV1ApiWithArguments,
+    CoreV1ApiWithArguments,
+    CustomObjectsApiWithArguments,
+    NetworkingV1ApiWithArguments,
+    RbacAuthorizationV1ApiWithArguments,
+)
 from .utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
 logger = logging.getLogger(__name__)
@@ -322,7 +325,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
             expected_scale: int
             if len(priority_dict):
                 scaled = True
-                for (name, expected_scale) in priority_dict.items():
+                for name, expected_scale in priority_dict.items():
                     self.re_enable_hpa(deployment_name=name)
                     self.scale_up_deployment(name, expected_scale)
         if scaled:

@@ -6,7 +6,6 @@ import kubernetes
 from pytest_mock import MockerFixture
 
 from wiremind_kubernetes import KubernetesDeploymentManager
-
 from .conftest import TEST_NAMESPACE
 
 logger = logging.getLogger(__name__)

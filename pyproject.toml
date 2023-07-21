@@ -21,3 +21,7 @@ exclude = '''
   | documentation
 )
 '''
+
+[tool.bandit]
+exclude_dirs = ["./.git", "./kubernetes", "./documentation", "./src/wiremind_kubernetes/tests", "./.venv", "./build"]
+skips = []

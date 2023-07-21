@@ -1,5 +1,10 @@
 # wiremind-kubernetes
 
+## v7.3.0 (2023-07-21)
+### Feature
+- tests: rename `check_not_using_wiremind_cluster` to `check_using_test_cluster`
+- test: check_using_test_cluster: also check for whitelisted node names in case of remote test cluster
+
 ## v7.2.0 (2023-06-22)
 ### Feature
 - kubernetes: support NetworkingV1Api
