@@ -78,3 +78,8 @@ class RbacAuthorizationV1ApiWithArguments(ClientWithArguments):
 class NetworkingV1ApiWithArguments(ClientWithArguments):
     def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
         super().__init__(client=kubernetes.client.NetworkingV1Api, dry_run=dry_run, pretty=pretty)
+
+
+class StorageV1ApiWithArguments(ClientWithArguments):
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.StorageV1Api, dry_run=dry_run, pretty=pretty)

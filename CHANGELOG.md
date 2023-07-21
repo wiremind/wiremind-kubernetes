@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.4.0 (2023-07-21)
+### Feature
+- kubernetes: support StorageV1Api
+
 ## v7.3.0 (2023-07-21)
 ### Feature
 - tests: rename `check_not_using_wiremind_cluster` to `check_using_test_cluster`
