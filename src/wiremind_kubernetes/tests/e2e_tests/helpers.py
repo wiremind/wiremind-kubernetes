@@ -2,7 +2,7 @@ import json
 import logging
 import subprocess
 import sys
-import urllib
+import urllib.parse
 from typing import Any, Dict, List
 
 import kubernetes
