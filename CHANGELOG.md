@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.4.1 (2023-11-23)
+### Chore
+- tests: e2e: apply expecteddeploymentscales CRD from wiremind helm chart repository
+
 ## v7.4.0 (2023-07-21)
 ### Feature
 - kubernetes: support StorageV1Api

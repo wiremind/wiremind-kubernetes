@@ -5,7 +5,11 @@ or a logical set of standard Kubernetes controllers through the `expecteddeploym
 
 ## Installation
 
-This library requires the `expecteddeploymentscales.wiremind.io` CRD: `kubectl apply -f CustomResourceDefinition-expecteddeploymentscales.yaml`.
+This library requires the `expecteddeploymentscales.wiremind.io` CRD:
+```bash
+helm repo add wiremind https://wiremind.github.io/wiremind-helm-charts
+helm install wiremind-crds wiremind/wiremind-crds --version 0.1.0
+```
 
 ## Usage
 

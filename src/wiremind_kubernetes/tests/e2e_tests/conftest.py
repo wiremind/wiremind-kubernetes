@@ -38,8 +38,9 @@ def delete_namespace() -> None:
 
 @pytest.fixture
 def populate_cluster() -> Generator[None, None, None]:
+    run_command("helm repo add wiremind https://wiremind.github.io/wiremind-helm-charts")
     run_command(
-        f"kubectl apply -f {absolute_path}/../../CustomResourceDefinition-expecteddeploymentscales.yaml",
+        "helm install wiremind-crds wiremind/wiremind-crds --version 0.1.0",
     )
 
     try:
