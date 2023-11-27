@@ -47,7 +47,7 @@ jobs:
           find . -type f -regex '.*\.py$' -exec pyupgrade --py37-plus {} \;
 
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.2.0
+        uses: helm/kind-action@v1.8.0
 
       - name: Test with pytest
         run: |
