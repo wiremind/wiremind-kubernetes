@@ -64,6 +64,19 @@ spec:
 apiVersion: "wiremind.io/v1"
 kind: ExpectedDeploymentScale
 metadata:
+  name: concerned-but-without-related-deployment
+  labels:
+    app.kubernetes.io/instance: concerned
+spec:
+  deploymentName: concerned-but-without-related-deployment
+  expectedScale: 1
+  priority: 10
+
+---
+
+apiVersion: "wiremind.io/v1"
+kind: ExpectedDeploymentScale
+metadata:
   name: unconcerned
   labels:
     app.kubernetes.io/instance: unconcerned
