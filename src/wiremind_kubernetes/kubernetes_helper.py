@@ -133,7 +133,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         self.client_appsv1_api.patch_namespaced_stateful_set_scale(statefulset_name, self.namespace, body)
         logger.debug("Done deleting.")
 
-    @retry_kubernetes_request_no_ignore
+    @retry_kubernetes_request
     def scale_down_deployment(self, deployment_name: str) -> None:
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Deleting all Pods for %s", deployment_name)
@@ -148,7 +148,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         self.client_appsv1_api.patch_namespaced_stateful_set_scale(statefulset_name, self.namespace, body)
         logger.debug("Done recreating.")
 
-    @retry_kubernetes_request_no_ignore
+    @retry_kubernetes_request
     def scale_up_deployment(self, deployment_name: str, pod_amount: int) -> None:
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Recreating backend Pods for %s", deployment_name)
@@ -183,7 +183,12 @@ class NamespacedKubernetesHelper(KubernetesHelper):
                 raise
 
     def is_deployment_stopped(self, deployment_name: str, statefulset: bool = False) -> bool:
-        pod_list: List = self._get_pods_from_deployment(deployment_name, statefulset)
+        try:
+            pod_list: List = self._get_pods_from_deployment(deployment_name, statefulset)
+        except kubernetes.client.rest.ApiException as e:
+            if e.status == 404:
+                logger.warning("Not found, ignoring.")
+                return True
 
         current_scale = 0
         for pod in pod_list:
@@ -197,10 +202,16 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         return True
 
     def is_deployment_ready(self, deployment_name: str, statefulset: bool = False) -> bool:
-        if statefulset:
-            status = self.client_appsv1_api.read_namespaced_stateful_set_status(deployment_name, self.namespace)
-        else:
-            status = self.client_appsv1_api.read_namespaced_deployment_status(deployment_name, self.namespace)
+        try:
+            if statefulset:
+                status = self.client_appsv1_api.read_namespaced_stateful_set_status(deployment_name, self.namespace)
+            else:
+                status = self.client_appsv1_api.read_namespaced_deployment_status(deployment_name, self.namespace)
+        except kubernetes.client.rest.ApiException as e:
+            if e.status == 404:
+                logger.warning("Not found, ignoring.")
+                return True
+
         expected_replicas = status.spec.replicas
         ready_replicas = status.status.ready_replicas
         resource_type = statefulset and "StatefulSet" or "Deployment"

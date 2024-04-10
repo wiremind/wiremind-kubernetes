@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.4.2 (2024-07-25)
+### Fix
+- start/stop pods: Do not crash if related Deployment / Statefulset does not exist
+
 ## v7.4.4 (2024-04-22)
 ### Chore
 - mark package as PEP 561-compliant for type hints
