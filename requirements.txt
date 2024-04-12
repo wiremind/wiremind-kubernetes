@@ -14,7 +14,7 @@ charset-normalizer==2.1.1
     # via requests
 google-auth==2.11.1
     # via kubernetes
-idna==3.4
+idna==3.7
     # via requests
 kubernetes==24.2.0
     # via wiremind-kubernetes (setup.py)
