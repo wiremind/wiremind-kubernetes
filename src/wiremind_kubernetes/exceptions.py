@@ -6,6 +6,8 @@ class WiremindKubernetesException(Exception):
     Base wiremind-kubernetes Exception.
     """
 
+    message: str
+
     def __init__(self, message: Optional[str] = None):
         super().__init__()
         if message:
