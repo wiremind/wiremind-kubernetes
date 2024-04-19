@@ -33,7 +33,7 @@ class KubernetesHelper:
 
     def __init__(
         self,
-        use_kubeconfig: bool = False,
+        use_kubeconfig: Optional[bool] = False,
         dry_run: bool = False,
         pretty: bool = True,
         should_load_kubernetes_config: bool = True,
@@ -86,7 +86,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
     def __init__(
         self,
-        use_kubeconfig: bool = False,
+        use_kubeconfig: Optional[bool] = False,
         namespace: Union[None, str] = None,
         dry_run: bool = False,
         should_load_kubernetes_config: bool = True,
