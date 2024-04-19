@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.4.2 (2024-04-19)
+### Fix
+- kubernetes_helper: correct typing for `use_kubeconfig`
+
 ## v7.4.1 (2023-11-23)
 ### Chore
 - tests: e2e: apply expecteddeploymentscales CRD from wiremind helm chart repository
