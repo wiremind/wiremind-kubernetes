@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.4.3 (2024-04-19)
+### Fix
+- correct class attributes typing
+
 ## v7.4.2 (2024-04-19)
 ### Fix
 - kubernetes_helper: correct typing for `use_kubeconfig`

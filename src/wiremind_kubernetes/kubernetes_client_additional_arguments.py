@@ -10,15 +10,19 @@ class ClientWithArguments:
     Currently add dry_run support for write functions and pretty to all.
     """
 
+    client: Any
+    read_additional_arguments: Dict[str, Any]
+    additional_arguments: Dict[str, Any]
+
     def __init__(self, client: Any, dry_run: bool = False, pretty: bool = True):
         self.client = client()  # like kubernetes.client.CoreV1Api
-        self.read_additional_arguments: Dict[str, Any] = {}
+        self.read_additional_arguments = {}
         # Only add it when its true because we set pretty client wide,
         # read_cluster_custom_object which accepts it will not have it set, but it's ok for now.
         if pretty:
             self.read_additional_arguments["pretty"] = pretty
         # Every request, either read or write, will have those arguments added
-        self.additional_arguments: Dict[str, Any] = self.read_additional_arguments.copy()
+        self.additional_arguments = self.read_additional_arguments.copy()
         if dry_run:
             # Dry run, in kube API, is not true or false, but either dry_run: All or not defined.
             self.additional_arguments["dry_run"] = "All"

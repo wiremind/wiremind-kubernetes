@@ -29,7 +29,19 @@ class KubernetesHelper:
     A simple helper for Kubernetes manipulation.
     """
 
-    SCALE_DOWN_MAX_WAIT_TIME = 3600
+    SCALE_DOWN_MAX_WAIT_TIME: int = 3600
+
+    client_corev1_api: kubernetes.client.CoreV1Api
+    client_appsv1_api: kubernetes.client.AppsV1Api
+    client_batchv1_api: kubernetes.client.BatchV1Api
+    client_autoscalingv1_api: kubernetes.client.AutoscalingV1Api
+    client_custom_objects_api: kubernetes.client.CustomObjectsApi
+    client_rbac_authorization_v1_api: kubernetes.client.RbacAuthorizationV1Api
+    client_networking_v1_api: kubernetes.client.NetworkingV1Api
+    client_storage_v1_api: kubernetes.client.StorageV1Api
+
+    dry_run: bool
+    pretty: bool
 
     def __init__(
         self,
@@ -52,27 +64,17 @@ class KubernetesHelper:
         """
         if should_load_kubernetes_config:
             load_kubernetes_config(use_kubeconfig=use_kubeconfig, context=context)
-        self.client_corev1_api: kubernetes.client.CoreV1Api = CoreV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_appsv1_api: kubernetes.client.AppsV1Api = AppV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_batchv1_api: kubernetes.client.BatchV1Api = BatchV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_autoscalingv1_api: kubernetes.client.AutoscalingV1Api = AutoscalingV1ApiWithArguments(
-            dry_run=dry_run, pretty=pretty
-        )
-        self.client_custom_objects_api: kubernetes.client.CustomObjectsApi = CustomObjectsApiWithArguments(
-            dry_run=dry_run, pretty=pretty
-        )
-        self.client_rbac_authorization_v1_api: kubernetes.client.RbacAuthorizationV1Api = (
-            RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        )
-        self.client_networking_v1_api: kubernetes.client.NetworkingV1Api = NetworkingV1ApiWithArguments(
-            dry_run=dry_run, pretty=pretty
-        )
-        self.client_storage_v1_api: kubernetes.client.StorageV1Api = StorageV1ApiWithArguments(
-            dry_run=dry_run, pretty=pretty
-        )
+        self.client_corev1_api = CoreV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_appsv1_api = AppV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_batchv1_api = BatchV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_autoscalingv1_api = AutoscalingV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_custom_objects_api = CustomObjectsApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_rbac_authorization_v1_api = RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_networking_v1_api = NetworkingV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_storage_v1_api = StorageV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
 
-        self.dry_run: bool = dry_run
-        self.pretty: bool = pretty
+        self.dry_run = dry_run
+        self.pretty = pretty
 
 
 def _get_namespace_from_kube() -> str:
@@ -83,6 +85,8 @@ class NamespacedKubernetesHelper(KubernetesHelper):
     """
     A simple helper for Kubernetes manipulation.
     """
+
+    namespace: str
 
     def __init__(
         self,
@@ -253,6 +257,8 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
     do_something('wololo')
     a.start_pods()
     """
+
+    release_name: str
 
     def __init__(self, release_name: str, **kwargs: Any):
         self.release_name = release_name
