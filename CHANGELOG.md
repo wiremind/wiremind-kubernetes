@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.4.4 (2024-04-22)
+### Chore
+- mark package as PEP 561-compliant for type hints
+
 ## v7.4.3 (2024-04-19)
 ### Fix
 - correct class attributes typing
