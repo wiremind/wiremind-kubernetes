@@ -44,6 +44,7 @@ allowing to scale down ALL Deployments of a Helm Release marked as such).""",
     license="LGPLv3+",
     packages=find_packages("src"),
     package_dir={"": "src"},
+    package_data={"wiremind_kubernetes": ["py.typed"]},
     include_package_data=True,
     zip_safe=True,
     install_requires=[
