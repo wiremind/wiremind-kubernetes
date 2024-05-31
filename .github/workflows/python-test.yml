@@ -18,7 +18,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version:
+          - '3.9'
+          - '3.10'
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +46,7 @@ jobs:
 
       - name: Check syntax with pyupgrade
         run: |
-          find . -type f -regex '.*\.py$' -exec pyupgrade --py37-plus {} \;
+          find . -type f -regex '.*\.py$' -exec pyupgrade --py39-plus {} \;
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.10.0
