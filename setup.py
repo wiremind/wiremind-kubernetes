@@ -55,7 +55,7 @@ allowing to scale down ALL Deployments of a Helm Release marked as such).""",
         "mypy": extra_require_mypy,
         "test": extra_require_test,
     },
-    python_requires=">=3.7.0",
+    python_requires=">=3.9.0",
     keywords=["kubernetes"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
