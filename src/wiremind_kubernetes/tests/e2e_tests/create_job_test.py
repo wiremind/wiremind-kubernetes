@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import logging
 import pprint
 import time
 
-import kubernetes
+from kubernetes.client.exceptions import ApiException
 from pytest_mock import MockerFixture
 
-from wiremind_kubernetes import KubernetesDeploymentManager
 from .conftest import TEST_NAMESPACE
+from wiremind_kubernetes import KubernetesDeploymentManager
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +18,11 @@ def test_create_job(concerned_dm: KubernetesDeploymentManager, create_namespace:
     Test that default create job and delete job work as expected
     """
     job_name = "my-test-job"
-    concerned_dm.create_job(
+    created_job = concerned_dm.create_job(
         concerned_dm.generate_job(
-            job_name=job_name, container_image="gcr.io/google_containers/pause-amd64:3.1", labels={"foo": "bar"}
+            job_name=job_name,
+            container_image="gcr.io/google_containers/pause-amd64:3.1",
+            labels={"foo": "bar"},
         )
     )
     for _ in range(1, 20):
@@ -30,6 +34,8 @@ def test_create_job(concerned_dm: KubernetesDeploymentManager, create_namespace:
         else:
             logger.info("job not ready yet, waiting...")
             time.sleep(5)
+
+    assert created_job is not None
     assert created_job.status.active == 1
     # The priorityclass was set to "", Kube will ignore it
     # and render the priority of the Pod to 0
@@ -41,16 +47,18 @@ def test_create_job(concerned_dm: KubernetesDeploymentManager, create_namespace:
             concerned_dm.client_batchv1_api.read_namespaced_job(
                 concerned_dm.release_name + "-" + job_name, TEST_NAMESPACE
             )
-        except kubernetes.client.rest.ApiException as e:
+        except ApiException as e:
             if e.status == 404:
                 break
         else:
             logger.info("job is not deleted yet, waiting...")
             time.sleep(1)
 
+    pod_list: list = []
     for _ in range(1, 30):
         pod_list = concerned_dm.client_corev1_api.list_namespaced_pod(
-            TEST_NAMESPACE, label_selector=f"job-name={concerned_dm.release_name}-{job_name}"
+            TEST_NAMESPACE,
+            label_selector=f"job-name={concerned_dm.release_name}-{job_name}",
         ).items
         if not pod_list:
             break
@@ -67,7 +75,7 @@ def test_create_job_argument(concerned_dm: KubernetesDeploymentManager, create_n
     """
     job_name = "my-test-job"
     priority_class_name = "two-thousand-and-six"
-    concerned_dm.create_job(
+    created_job = concerned_dm.create_job(
         concerned_dm.generate_job(
             job_name=job_name,
             container_image="alpine:latest",
@@ -87,6 +95,7 @@ def test_create_job_argument(concerned_dm: KubernetesDeploymentManager, create_n
         else:
             logger.info("job not finished yet, waiting...")
             time.sleep(5)
+    assert created_job is not None
     assert created_job.status.succeeded == 1
     # Check that the priority was set as we wanted
     assert created_job.spec.template.spec.priority_class_name == priority_class_name

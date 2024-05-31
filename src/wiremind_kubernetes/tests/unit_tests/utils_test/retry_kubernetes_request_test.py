@@ -1,5 +1,7 @@
-import kubernetes.client.rest
+from __future__ import annotations
+
 import pytest
+from kubernetes.client.exceptions import ApiException
 
 from wiremind_kubernetes.utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
@@ -27,7 +29,7 @@ def test_retries_once() -> None:
         nonlocal counter
         counter += 1
         if counter < 2:
-            raise kubernetes.client.rest.ApiException("failed")
+            raise ApiException("failed")
         else:
             return "success"
 
@@ -43,9 +45,9 @@ def test_limit_is_reached() -> None:
     def always_fails() -> None:
         nonlocal counter
         counter += 1
-        raise kubernetes.client.rest.ApiException("failed")
+        raise ApiException("failed")
 
-    with pytest.raises(kubernetes.client.rest.ApiException):
+    with pytest.raises(ApiException):
         always_fails()
     assert counter == 2
 
@@ -57,7 +59,7 @@ def test_404_correctly_handled() -> None:
     def notfound() -> None:
         nonlocal counter
         counter += 1
-        raise kubernetes.client.rest.ApiException(status=404)
+        raise ApiException(status=404)
 
     r = notfound()
 
@@ -75,9 +77,9 @@ def test_404_correctly_ignored() -> None:
     def notfound() -> None:
         nonlocal counter
         counter += 1
-        raise kubernetes.client.rest.ApiException(status=404)
+        raise ApiException(status=404)
 
-    with pytest.raises(kubernetes.client.rest.ApiException):
+    with pytest.raises(ApiException):
         r = notfound()
         assert r is None
     assert counter == 1

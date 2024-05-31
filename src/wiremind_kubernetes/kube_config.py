@@ -1,24 +1,28 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Optional
 
-import kubernetes
+from kubernetes.config.incluster_config import SERVICE_TOKEN_FILENAME, load_incluster_config
+from kubernetes.config.kube_config import load_kube_config
 
 logger = logging.getLogger(__name__)
 
 
-def _load_kubeconfig(config_file: Optional[str] = None, context: Optional[str] = None) -> None:
-    kubernetes.config.load_kube_config(config_file=config_file, context=context)
+def _load_kubeconfig(config_file: str | None = None, context: str | None = None) -> None:
+    load_kube_config(config_file=config_file, context=context)
     logger.debug("Kubernetes configuration successfully set.")
 
 
 def _load_incluster_config() -> None:
-    kubernetes.config.load_incluster_config()
+    load_incluster_config()
     logger.debug("Kubernetes configuration successfully set.")
 
 
 def load_kubernetes_config(
-    use_kubeconfig: Optional[bool] = None, config_file: Optional[str] = None, context: Optional[str] = None
+    use_kubeconfig: bool | None = None,
+    config_file: str | None = None,
+    context: str | None = None,
 ) -> None:
     """
     Load kubernetes configuration in memory, either from incluster method or from kubeconfig.
@@ -43,7 +47,7 @@ def load_kubernetes_config(
     elif use_kubeconfig is False:
         _load_incluster_config()
     elif use_kubeconfig is None:
-        if os.path.exists(kubernetes.config.incluster_config.SERVICE_TOKEN_FILENAME):
+        if os.path.exists(SERVICE_TOKEN_FILENAME):
             _load_incluster_config()
         else:
             _load_kubeconfig(config_file=config_file, context=context)

@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import logging
 import os
 import time
-from typing import Generator
+from collections.abc import Generator
 
-import kubernetes
 import pytest
+from kubernetes.client.api_client import ApiClient
 from pytest_mock import MockerFixture
 
 import wiremind_kubernetes
@@ -22,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="function")
 def k8s_client_request_function(mocker: MockerFixture) -> Generator:
-    yield mocker.spy(kubernetes.client.api_client.ApiClient, "request")
+    yield mocker.spy(ApiClient, "request")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -80,7 +82,7 @@ def populate_cluster() -> Generator[None, None, None]:
                 f"kubectl delete namespace {TEST_NAMESPACE} --wait",
             )
             raise Exception("Could not start deployments.")
-    except:  # noqa E722
+    except:
         delete_namespace()
         raise
 
