@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import subprocess
 
 import pytest
@@ -66,7 +68,7 @@ def test_run_command_succeeded_line_callback(mocker: MockerFixture) -> None:
     """
     Test that running a working command using a custom line_callback works as expected.
     """
-    result = []
+    result: list[str] = []
 
     def line_callback(line: str) -> None:
         nonlocal result
@@ -147,11 +149,11 @@ def test_run_command_honors_args(mocker: MockerFixture) -> None:
     popen_spy = mocker.spy(subprocess, "Popen")
     log_spy = mocker.spy(logger, "info")
 
-    run_command(["echo lol; true"], shell=True)
+    run_command(["echo lol; true"], shell=True)  # noqa: S604
 
     popen_spy.assert_called_once_with(
         ["echo lol; true"],
-        shell=True,
+        shell=True,  # noqa: S604
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
         universal_newlines=True,

@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 
 class WiremindKubernetesException(Exception):
@@ -8,7 +8,7 @@ class WiremindKubernetesException(Exception):
 
     message: str
 
-    def __init__(self, message: Optional[str] = None):
+    def __init__(self, message: str | None = None):
         super().__init__()
         if message:
             self.message = message

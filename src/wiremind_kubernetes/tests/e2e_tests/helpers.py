@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import json
 import logging
 import subprocess
 import sys
 import urllib.parse
-from typing import Any, Dict, List
+from typing import Any
 
-import kubernetes
+from kubernetes.config.config_exception import ConfigException
+from kubernetes.config.kube_config import list_kube_config_contexts
 
 from wiremind_kubernetes import run_command
 
@@ -17,7 +20,12 @@ DEFAULT_TEST_IPS_WHITELISTED = [
     "kubernetes.docker.internal",  # Docker for Mac
 ]
 
-DEFAULT_TEST_NODES_WHITELISTED = ["minikube", "kind-control-plane", "kind", "kind-worker"]
+DEFAULT_TEST_NODES_WHITELISTED = [
+    "minikube",
+    "kind-control-plane",
+    "kind",
+    "kind-worker",
+]
 
 
 def get_default_kube_context() -> str:
@@ -25,24 +33,24 @@ def get_default_kube_context() -> str:
     Retrieves the default kube context
     """
     try:
-        return kubernetes.config.list_kube_config_contexts()[1]["name"]
-    except kubernetes.config.config_exception.ConfigException:
+        return list_kube_config_contexts()[1]["name"]
+    except ConfigException:
         # Inside a Container maybe. This will make it use the incluster config.
         return ""
 
 
-def is_ip_whitelisted(*, ips_whitelisted: List[str]) -> bool:
+def is_ip_whitelisted(*, ips_whitelisted: list[str]) -> bool:
     api_server = subprocess.check_output(
-        "kubectl config view --minify | grep server | cut -f 2- -d ':' | tr -d ' '",
-        shell=True,
-        text=True,
+        "kubectl config view --minify | grep server | cut -f 2- -d ':' | tr -d ' '",  # noqa: S607
+        shell=True,  # noqa: S602
+        text=True,  # noqa: S602
     )
 
     hostname = urllib.parse.urlparse(api_server.lower().strip()).hostname
     return hostname in ips_whitelisted
 
 
-def is_node_whitelisted(*, nodes_whitelisted: List[str]) -> bool:
+def is_node_whitelisted(*, nodes_whitelisted: list[str]) -> bool:
     output, *_ = run_command("kubectl get nodes -o name", return_result=True)
     cluster_nodes = [x for x in output.replace("node/", "").split("\n") if x != ""]
     for node in cluster_nodes:
@@ -53,8 +61,8 @@ def is_node_whitelisted(*, nodes_whitelisted: List[str]) -> bool:
 
 def check_using_test_cluster(
     *,
-    ips_whitelisted: List[str] = DEFAULT_TEST_IPS_WHITELISTED,
-    nodes_whitelisted: List[str] = DEFAULT_TEST_NODES_WHITELISTED,
+    ips_whitelisted: list[str] = DEFAULT_TEST_IPS_WHITELISTED,
+    nodes_whitelisted: list[str] = DEFAULT_TEST_NODES_WHITELISTED,
 ) -> bool:
     """
     Will sys.exit(1) if kubectl current context api server is not a test cluster (like kind, minikube, etc)
@@ -82,13 +90,14 @@ def get_k8s_username() -> str:
     | $user.name'"""
     # dex-k8s-authenticator sets the user to: user={{ .Username}}-{{.ClusterName }}`
     # https://github.com/mintel/dex-k8s-authenticator/blob/master/templates/linux-mac-common.html#L101
-    username = subprocess.check_output(command, shell=True, text=True).replace('"', "").strip().split("-")[0]
+    username = subprocess.check_output(command, shell=True, text=True).replace('"', "").strip().split("-")[0]  # noqa: S602
     assert username
     return username
 
 
-def kubectl_get_json(*, resource: str, namespace: str, name: str) -> Dict[str, Any]:
+def kubectl_get_json(*, resource: str, namespace: str, name: str) -> dict[str, Any]:
     output, *_ = run_command(
-        f"kubectl get {resource} {name} -n {namespace} --ignore-not-found -o json", return_result=True
+        f"kubectl get {resource} {name} -n {namespace} --ignore-not-found -o json",
+        return_result=True,
     )
     return json.loads(output or "{}")

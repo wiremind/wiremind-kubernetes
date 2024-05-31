@@ -1,27 +1,123 @@
-[tool.black]
+[project]
+name = "wiremind-kubernetes"
+description = "Helper for Kubernetes."
+dynamic = ["version"]
+keywords = ["kubernetes"]
+readme = "README.md"
+authors = [
+    {name = "Wiremind", email = "dev@wiremind.io"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+]
+license = {text = "LGPLv3+"}
+requires-python = ">=3.9.0"
+dependencies = [
+    "kubernetes>=18.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/wiremind/wiremind-kubernetes"
+
+[build-system]
+requires = ["setuptools>=69.1", ]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = true
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
+
+[tool.setuptools.package-data]
+wiremind_kubernetes = ["py.typed"]
+
+[project.optional-dependencies]
+dev = [
+    # dev
+    "pip-tools>=3.7.0",
+
+    # lint & format
+    "ruff>=0.4.0",
+    "pyright==1.1.360",
+    "types-mock",
+
+    # security
+    "safety",
+
+    # test
+    "mock",
+    "pytest",
+    "pytest-mock",
+]
+
+[tool.pyright]
+pythonVersion = "3.9"
+stubPath = "./typings"
+extraPaths = ["src/"]
+# TODO: enable back strict mode when all errors are fixed
+# strict = ["src"]
+include = ["src"]
+useLibraryCodeForTypes = true
+
+[tool.ruff]
+target-version = "py39"
 line-length = 120
-target-version = ['py39']
-exclude = '''
+exclude = [
+    ".bzr",
+    ".git",
+    ".svn",
+    ".hg",
+    "typings"
+]
 
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-  )/
-  | es_utils
-  | alembic
-  | documentation
-)
-'''
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/rules/
+select = [
+    "E", # pycodestyle
+    "F", # pyflakes
+    "I", # isort
+    "Q", # flake8-quotes-q
+    "S",  # flake8-bandit-s
+    "UP", # pyupgrade
+    "W",  # pycodestyle
+]
 
-[tool.bandit]
-exclude_dirs = ["./.git", "./kubernetes", "./documentation", "./src/wiremind_kubernetes/tests", "./.venv", "./build"]
-skips = []
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-wrap-aliases = true
+forced-separate = ["tests"]
+known-local-folder = [
+    "wiremind_kubernetes",
+    "src",
+    "tests"
+]
+known-first-party = [
+]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+"*/__init__.py" = [
+    "F401"
+]
+"alembic/*" = [
+    "S608", # Possible SQL injection vector through string-based query construction
+]
+"src/wiremind_kubernetes/tests/**/*.py" = [
+    "S101", # asserts allowed in tests
+    "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
+    # "S603", # `subprocess` call: check for execution of untrusted input
+]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 120

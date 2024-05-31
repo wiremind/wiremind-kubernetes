@@ -1,11 +1,11 @@
-import os
-from typing import Dict, Generator, Optional
+from __future__ import annotations
 
-import kubernetes
+import os
+from collections.abc import Generator
+
 import pytest
 from pytest_mock import MockerFixture
 
-import wiremind_kubernetes
 from wiremind_kubernetes.kube_config import load_kubernetes_config
 
 
@@ -30,7 +30,7 @@ def clean_os_environ() -> Generator:
             "context-1",
             {},
             False,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config",
+            "wiremind_kubernetes.kube_config.load_kube_config",
         ),
         (
             False,
@@ -38,7 +38,7 @@ def clean_os_environ() -> Generator:
             None,
             {},
             True,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config",
+            "wiremind_kubernetes.kube_config.load_incluster_config",
         ),
         (
             None,
@@ -46,7 +46,7 @@ def clean_os_environ() -> Generator:
             None,
             {},
             False,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config",
+            "wiremind_kubernetes.kube_config.load_incluster_config",
         ),
         (
             None,
@@ -54,7 +54,7 @@ def clean_os_environ() -> Generator:
             "context-2",
             {},
             True,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config",
+            "wiremind_kubernetes.kube_config.load_incluster_config",
         ),
         (
             True,
@@ -62,7 +62,7 @@ def clean_os_environ() -> Generator:
             None,
             {"CLASSIC_K8S_CONFIG": "1"},
             True,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config",
+            "wiremind_kubernetes.kube_config.load_kube_config",
         ),
         (
             False,
@@ -70,7 +70,7 @@ def clean_os_environ() -> Generator:
             "/test/config",
             {"CLASSIC_K8S_CONFIG": "1"},
             True,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config",
+            "wiremind_kubernetes.kube_config.load_kube_config",
         ),
         (
             None,
@@ -78,7 +78,7 @@ def clean_os_environ() -> Generator:
             None,
             {"CLASSIC_K8S_CONFIG": "1"},
             True,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config",
+            "wiremind_kubernetes.kube_config.load_kube_config",
         ),
         (
             "anything",
@@ -86,7 +86,7 @@ def clean_os_environ() -> Generator:
             None,
             {"CLASSIC_K8S_CONFIG": "1"},
             True,
-            "wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config",
+            "wiremind_kubernetes.kube_config.load_kube_config",
         ),
         (
             "",
@@ -107,36 +107,39 @@ def clean_os_environ() -> Generator:
     ],
 )
 def test_load_kubernetes_config_1(
-    use_kubeconfig: Optional[bool],
-    config_file: Optional[str],
-    context: Optional[str],
-    extra_env_vars: Dict[str, str],
+    use_kubeconfig: bool | None,
+    config_file: str | None,
+    context: str | None,
+    extra_env_vars: dict[str, str],
     service_token_present: bool,
-    should_call: Optional[str],
+    should_call: str | None,
     mocker: MockerFixture,
 ) -> None:
     """
     Test that load_kubernetes_config calls the right kube loading function, when needed, with the right parameters.
     Only relevant cases are tested.
     """
-    load_kube_config: str = "wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config"
-    load_incluster_config: str = "wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config"
+    load_kube_config_module: str = "wiremind_kubernetes.kube_config.load_kube_config"
+    load_incluster_config_module: str = "wiremind_kubernetes.kube_config.load_incluster_config"
 
-    mocker.patch(load_kube_config)
-    mocker.patch(load_incluster_config)
+    mock_load_kube_config = mocker.patch(load_kube_config_module)
+    mock_load_incluster_config = mocker.patch(load_incluster_config_module)
     # merge extra_env_vars with os.environ
     mocker.patch.dict(os.environ, extra_env_vars)
     # os.path.exists is used ONLY to check for token file in wiremind_kubernetes.kube_config for now
-    mocker.patch("wiremind_kubernetes.kube_config.os.path.exists", kawrgs={"side_effect": service_token_present})
+    mocker.patch(
+        "wiremind_kubernetes.kube_config.os.path.exists",
+        kawrgs={"side_effect": service_token_present},
+    )
 
     load_kubernetes_config(use_kubeconfig=use_kubeconfig, config_file=config_file, context=context)
 
-    if should_call == load_kube_config:
-        kubernetes.config.load_kube_config.assert_called_once_with(config_file=config_file, context=context)
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config.call_count == 0
-    elif should_call == load_incluster_config:
-        kubernetes.config.load_incluster_config.assert_called_once_with()
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config.call_count == 0
+    if should_call == mock_load_kube_config:
+        mock_load_kube_config.assert_called_once_with(config_file=config_file, context=context)
+        assert mock_load_incluster_config.call_count == 0
+    elif should_call == mock_load_incluster_config:
+        mock_load_incluster_config.assert_called_once_with()
+        assert mock_load_kube_config.call_count == 0
     else:
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config.call_count == 0
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config.call_count == 0
+        assert mock_load_kube_config.call_count == 0
+        assert mock_load_incluster_config.call_count == 0

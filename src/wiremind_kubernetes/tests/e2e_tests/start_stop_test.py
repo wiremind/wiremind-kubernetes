@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import time
 
@@ -24,7 +26,8 @@ def assert_hpa_scale_target_ref_name(*, hpa_name: str, scale_target_ref_name: st
 
 
 def are_deployments_ready(
-    concerned_dm: KubernetesDeploymentManager, unconcerned_dm: KubernetesDeploymentManager
+    concerned_dm: KubernetesDeploymentManager,
+    unconcerned_dm: KubernetesDeploymentManager,
 ) -> bool:
     return (
         concerned_dm.is_deployment_ready("concerned")
@@ -35,7 +38,8 @@ def are_deployments_ready(
 
 
 def wait_for_deployments_ready(
-    concerned_dm: KubernetesDeploymentManager, unconcerned_dm: KubernetesDeploymentManager
+    concerned_dm: KubernetesDeploymentManager,
+    unconcerned_dm: KubernetesDeploymentManager,
 ) -> None:
     for _ in range(1, 10):
         logger.info("Waiting for deployments to be started...")
