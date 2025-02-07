@@ -87,3 +87,8 @@ class NetworkingV1ApiWithArguments(ClientWithArguments):
 class StorageV1ApiWithArguments(ClientWithArguments):
     def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
         super().__init__(client=kubernetes.client.StorageV1Api, dry_run=dry_run, pretty=pretty)
+
+
+class AdmissionregistrationV1ApiWithArguments(ClientWithArguments):
+    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.AdmissionregistrationV1Api, dry_run=dry_run)
