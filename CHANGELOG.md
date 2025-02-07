@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.5.0 (2025-02-07)
+### Feat
+- admissionregistration api client
+
 ## v7.4.2 (2024-07-25)
 ### Fix
 - start/stop pods: Do not crash if related Deployment / Statefulset does not exist
