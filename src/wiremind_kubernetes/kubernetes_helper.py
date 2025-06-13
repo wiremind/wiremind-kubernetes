@@ -296,7 +296,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         }
         """
         logger.debug("Getting list of deployments to scale down")
-        deploys: List[Dict[str, Any]] = []
+        deploys: List[kubernetes.client.V1Deployment] = []
         release_label_keys = ["app.kubernetes.io/instance", "release"]
 
         for release_label_key in release_label_keys:
