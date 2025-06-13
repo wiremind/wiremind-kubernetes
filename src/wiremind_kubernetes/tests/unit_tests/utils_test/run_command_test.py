@@ -69,7 +69,6 @@ def test_run_command_succeeded_line_callback(mocker: MockerFixture) -> None:
     result = []
 
     def line_callback(line: str) -> None:
-        nonlocal result
         result.append(line)
 
     popen_spy = mocker.spy(subprocess, "Popen")
@@ -131,7 +130,6 @@ def test_run_command_failed_line_callback(mocker: MockerFixture) -> None:
     result = []
 
     def line_callback(line: str) -> None:
-        nonlocal result
         result.append(line)
 
     with pytest.raises(subprocess.CalledProcessError):

@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: concerned
+  labels:
+    app.kubernetes.io/instance: concerned
+    maintenance.wiremind.io/scale-down-required: "true"
+    maintenance.wiremind.io/scale-down-priority: "0"
+    maintenance.wiremind.io/replica-count: "1"
 spec:
   replicas: 1
   selector:
@@ -25,6 +30,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: concerned-2
+  labels:
+    app.kubernetes.io/instance: concerned
+    maintenance.wiremind.io/scale-down-required: "true"
+    maintenance.wiremind.io/scale-down-priority: "0"
+    maintenance.wiremind.io/replica-count: "2"
 spec:
   replicas: 2
   selector:
@@ -48,6 +58,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: concerned-high-priority
+  labels:
+    app.kubernetes.io/instance: concerned
+    maintenance.wiremind.io/scale-down-required: "true"
+    maintenance.wiremind.io/scale-down-priority: "10"
+    maintenance.wiremind.io/replica-count: "1"
 spec:
   replicas: 1
   selector:
@@ -70,6 +85,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: concerned-very-high-priority
+  labels:
+    app.kubernetes.io/instance: concerned
+    maintenance.wiremind.io/scale-down-required: "true"
+    maintenance.wiremind.io/scale-down-priority: "100"
+    maintenance.wiremind.io/replica-count: "1"
 spec:
   replicas: 1
   selector:
@@ -94,6 +114,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: concerned-low-priority
+  labels:
+    app.kubernetes.io/instance: concerned
+    maintenance.wiremind.io/scale-down-required: "true"
+    maintenance.wiremind.io/scale-down-priority: "-10"
+    maintenance.wiremind.io/replica-count: "1"
 spec:
   replicas: 1
   selector:
@@ -117,6 +142,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: unconcerned
+  labels:
+    app.kubernetes.io/instance: unconcerned
+    maintenance.wiremind.io/scale-down-required: "true"
+    maintenance.wiremind.io/scale-down-priority: "0"
+    maintenance.wiremind.io/replica-count: "1"
 spec:
   replicas: 1
   selector:
