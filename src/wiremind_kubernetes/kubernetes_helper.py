@@ -280,12 +280,11 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         self.release_name = release_name
         super().__init__(**kwargs)
 
-
     @retry_kubernetes_request_no_ignore
     def _get_expected_deployment_scale_dict(self) -> Dict[int, Dict[str, int]]:
         """
         Return a dict of priority as keys and deployments name and their expected count as values
-        
+
         example: {
             0: {
                 "my-deployment": 3,
