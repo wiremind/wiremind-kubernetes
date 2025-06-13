@@ -2,6 +2,7 @@ import logging
 import pprint
 import time
 from typing import Any, Dict, Generator, List, Optional, Union
+from collections import defaultdict
 
 import kubernetes
 
@@ -279,14 +280,14 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         self.release_name = release_name
         super().__init__(**kwargs)
 
+
     @retry_kubernetes_request_no_ignore
     def _get_expected_deployment_scale_dict(self) -> Dict[int, Dict[str, int]]:
         """
-        Return a dict of expected deployment scale:
-        {
-            0: {  # priority
-                # key: Deployment name, only if it has an associated eds
-                # value: expected Deployment Scale (replicas)
+        Return a dict of priority as keys and deployments name and their expected count as values
+        
+        example: {
+            0: {
                 "my-deployment": 3,
                 "my-other-deployment": 42
             },
@@ -295,40 +296,28 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
             },
         }
         """
-        logger.debug("Getting Expected Deployment Scale list")
-        eds_list: List[Dict[str, Any]] = []
+        logger.debug("Getting list of deployments to scale down")
+        deploys: List[Dict[str, Any]] = []
         release_label_keys = ["app.kubernetes.io/instance", "release"]
 
         for release_label_key in release_label_keys:
-            logger.debug(f"Getting Expected Deployment Scale list with the" f" release label key {release_label_key}")
-            try:
-                eds_list.extend(
-                    self.client_custom_objects_api.list_namespaced_custom_object(
-                        namespace=self.namespace,
-                        group="wiremind.io",
-                        version="v1",
-                        plural="expecteddeploymentscales",
-                        label_selector=f"{release_label_key}={self.release_name}",
-                    )["items"]
-                )
-            except kubernetes.client.rest.ApiException as e:
-                if e.status != 404:
-                    raise
+            logger.debug("Getting list of deployments to scale down with the release label key %s", release_label_key)
+            deploys.extend(
+                self.client_appsv1_api.list_namespaced_deployment(
+                    namespace=self.namespace,
+                    label_selector=f"{release_label_key}={self.release_name},maintenance.wiremind.io/scale-down-required=true",
+                ).items
+            )
 
-        eds_dict: Dict[int, Dict[str, int]] = {}
-        for eds in eds_list:
-            deployment_name: str = eds["spec"]["deploymentName"]
-            expected_scale: int = eds["spec"]["expectedScale"]
-            # Note: default should be removed once we use CRD v1 with default within the CRD itself
-            priority: int = eds["spec"].get("priority", 0)
+        deploys_dict: Dict[int, Dict[str, int]] = defaultdict(dict)
+        for d in deploys:
+            name = d.metadata.name
+            priority = int(d.metadata.labels["maintenance.wiremind.io/scale-down-priority"])
+            count = int(d.metadata.labels["maintenance.wiremind.io/replica-count"])
+            deploys_dict[priority][name] = count
 
-            if priority not in eds_dict:
-                eds_dict[priority] = {}
-
-            eds_dict[priority][deployment_name] = expected_scale
-
-        logger.debug("Deployments are %s", pprint.pformat(eds_dict))
-        return eds_dict
+        logger.debug("Deployments are %s", pprint.pformat(deploys_dict))
+        return deploys_dict
 
     def start_pods(self) -> None:
         """
