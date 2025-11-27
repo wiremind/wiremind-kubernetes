@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.6.0 (2025-11-28)
+### Feature
+- autoscaling api to v2 from v1
+
 ## v7.5.0 (2025-02-07)
 ### Feat
 - admissionregistration api client
