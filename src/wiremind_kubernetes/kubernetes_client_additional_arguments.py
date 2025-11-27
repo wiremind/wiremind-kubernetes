@@ -68,6 +68,10 @@ class AutoscalingV1ApiWithArguments(ClientWithArguments):
     def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
         super().__init__(client=kubernetes.client.AutoscalingV1Api, dry_run=dry_run, pretty=pretty)
 
+class AutoscalingV2ApiWithArguments(ClientWithArguments):
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.AutoscalingV2Api, dry_run=dry_run, pretty=pretty)
+
 
 class CustomObjectsApiWithArguments(ClientWithArguments):
     def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
