@@ -9,7 +9,7 @@ from wiremind_kubernetes.exceptions import PodNotFound
 from .kube_config import load_kubernetes_config
 from .kubernetes_client_additional_arguments import (
     AppV1ApiWithArguments,
-    AutoscalingV1ApiWithArguments,
+    AutoscalingV2ApiWithArguments,
     BatchV1ApiWithArguments,
     CoreV1ApiWithArguments,
     CustomObjectsApiWithArguments,
@@ -35,7 +35,7 @@ class KubernetesHelper:
     client_corev1_api: kubernetes.client.CoreV1Api
     client_appsv1_api: kubernetes.client.AppsV1Api
     client_batchv1_api: kubernetes.client.BatchV1Api
-    client_autoscalingv1_api: kubernetes.client.AutoscalingV1Api
+    client_autoscalingv2_api: kubernetes.client.AutoscalingV2Api
     client_custom_objects_api: kubernetes.client.CustomObjectsApi
     client_rbac_authorization_v1_api: kubernetes.client.RbacAuthorizationV1Api
     client_networking_v1_api: kubernetes.client.NetworkingV1Api
@@ -68,7 +68,7 @@ class KubernetesHelper:
         self.client_corev1_api = CoreV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
         self.client_appsv1_api = AppV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
         self.client_batchv1_api = BatchV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_autoscalingv1_api = AutoscalingV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        self.client_autoscalingv2_api = AutoscalingV2ApiWithArguments(dry_run=dry_run, pretty=pretty)
         self.client_custom_objects_api = CustomObjectsApiWithArguments(dry_run=dry_run, pretty=pretty)
         self.client_rbac_authorization_v1_api = RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
         self.client_networking_v1_api = NetworkingV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
@@ -249,12 +249,12 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         return pod_list[0].metadata.name
 
     def get_deployment_hpa(self, *, deployment_name: str) -> Generator:
-        for hpa in self.client_autoscalingv1_api.list_namespaced_horizontal_pod_autoscaler(self.namespace).items:
+        for hpa in self.client_autoscalingv2_api.list_namespaced_horizontal_pod_autoscaler(self.namespace).items:
             if hpa.spec.scale_target_ref.kind == "Deployment" and hpa.spec.scale_target_ref.name == deployment_name:
                 yield hpa
 
     def patch_deployment_hpa(self, *, hpa_name: str, body: Any) -> None:
-        self.client_autoscalingv1_api.patch_namespaced_horizontal_pod_autoscaler(
+        self.client_autoscalingv2_api.patch_namespaced_horizontal_pod_autoscaler(
             name=hpa_name, namespace=self.namespace, body=body
         )
 
