@@ -1,7 +1,10 @@
 import kubernetes.client.rest
 import pytest
 
-from wiremind_kubernetes.utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
+from wiremind_kubernetes.utils import (
+    retry_kubernetes_request,
+    retry_kubernetes_request_no_ignore,
+)
 
 
 def test_no_retry_required() -> None:

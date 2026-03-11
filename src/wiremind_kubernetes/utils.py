@@ -3,7 +3,8 @@ import logging
 import shlex
 import subprocess
 import time
-from typing import Any, Callable, List, Optional, Tuple, Union
+from collections.abc import Callable
+from typing import Any
 
 import kubernetes
 
@@ -13,8 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 def run_command(
-    command: Union[List, str], return_result: bool = False, line_callback: Union[Callable, None] = None, **kw_args: Any
-) -> Tuple[str, str, int]:
+    command: list | str,
+    return_result: bool = False,
+    line_callback: Callable | None = None,
+    **kw_args: Any,
+) -> tuple[str, str, int]:
     """
     Run command, print stdout/stderr, check that command exited correctly, return stdout/err
     """
@@ -25,14 +29,18 @@ def run_command(
     if not line_callback:
         line_callback = logger.info
 
-    interpreted_command: List[str]
+    interpreted_command: list[str]
     if isinstance(command, str):
         interpreted_command = shlex.split(command)
     else:
         interpreted_command = command
 
     process = subprocess.Popen(
-        interpreted_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, **kw_args
+        interpreted_command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        **kw_args,
     )
 
     if return_result:
@@ -96,7 +104,11 @@ def retry_kubernetes_request_no_ignore(function: Callable) -> Callable:
 
 
 def kubernetes_exec(
-    commands: List[str], api: Any, pod_name: str, namespace_name: str, container_name: Optional[str] = None
+    commands: list[str],
+    api: Any,
+    pod_name: str,
+    namespace_name: str,
+    container_name: str | None = None,
 ) -> None:
     logger.info('Connecting to "%s" pod from "%s" namespace', pod_name, namespace_name)
     resp = kubernetes.stream.stream(

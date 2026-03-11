@@ -19,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - '3.9'
-          - '3.10'
+          - '3.13'
+          - '3.14'
 
     steps:
       - uses: actions/checkout@v5
@@ -36,17 +36,17 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -e .[dev]
 
-      - name: Lint with flake8
+      - name: Lint with Ruff
         run: |
-          flake8 . --count --show-source --statistics
+          ruff check .
+
+      - name: Check formatting with Ruff
+        run: |
+          ruff format --check .
 
       - name: Check typing with mypy
         run: |
           mypy --install-types --non-interactive .
-
-      - name: Check syntax with pyupgrade
-        run: |
-          find . -type f -regex '.*\.py$' -exec pyupgrade --py39-plus {} \;
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.12.0

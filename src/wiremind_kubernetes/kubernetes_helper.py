@@ -1,13 +1,16 @@
 import logging
 import pprint
 import time
-from typing import Any, Dict, Generator, List, Optional, Union
+from collections.abc import Generator
+from typing import Any
 
 import kubernetes
 
 from wiremind_kubernetes.exceptions import PodNotFound
+
 from .kube_config import load_kubernetes_config
 from .kubernetes_client_additional_arguments import (
+    AdmissionregistrationV1ApiWithArguments,
     AppV1ApiWithArguments,
     AutoscalingV2ApiWithArguments,
     BatchV1ApiWithArguments,
@@ -16,7 +19,6 @@ from .kubernetes_client_additional_arguments import (
     NetworkingV1ApiWithArguments,
     RbacAuthorizationV1ApiWithArguments,
     StorageV1ApiWithArguments,
-    AdmissionregistrationV1ApiWithArguments,
 )
 from .utils import retry_kubernetes_request, retry_kubernetes_request_no_ignore
 
@@ -46,11 +48,11 @@ class KubernetesHelper:
 
     def __init__(
         self,
-        use_kubeconfig: Optional[bool] = False,
+        use_kubeconfig: bool | None = False,
         dry_run: bool = False,
         pretty: bool = True,
         should_load_kubernetes_config: bool = True,
-        context: Optional[str] = None,
+        context: str | None = None,
     ):
         """
         :param use_kubeconfig:
@@ -94,11 +96,11 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
     def __init__(
         self,
-        use_kubeconfig: Optional[bool] = False,
-        namespace: Union[None, str] = None,
+        use_kubeconfig: bool | None = False,
+        namespace: None | str = None,
         dry_run: bool = False,
         should_load_kubernetes_config: bool = True,
-        context: Optional[str] = None,
+        context: str | None = None,
     ):
         """
         :param use_kubeconfig:
@@ -164,7 +166,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         return self.is_deployment_stopped(deployment_name, statefulset=True)
 
     @retry_kubernetes_request_no_ignore
-    def _get_pods_from_deployment(self, deployment_name: str, statefulset: bool = False) -> List:
+    def _get_pods_from_deployment(self, deployment_name: str, statefulset: bool = False) -> list:
         if statefulset:
             logger.debug("Asking if StatefulSet %s is stopped", deployment_name)
             labels = self.client_appsv1_api.read_namespaced_stateful_set(
@@ -178,7 +180,8 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
         try:
             return self.client_corev1_api.list_namespaced_pod(
-                namespace=self.namespace, label_selector=",".join(["%s=%s" % kv for kv in labels.items()])
+                namespace=self.namespace,
+                label_selector=",".join(["{}={}".format(*kv) for kv in labels.items()]),
             ).items
         except kubernetes.client.rest.ApiException as e:
             if e.status == 404:
@@ -188,7 +191,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
     def is_deployment_stopped(self, deployment_name: str, statefulset: bool = False) -> bool:
         try:
-            pod_list: List = self._get_pods_from_deployment(deployment_name, statefulset)
+            pod_list: list = self._get_pods_from_deployment(deployment_name, statefulset)
         except kubernetes.client.rest.ApiException as e:
             if e.status == 404:
                 logger.warning("Not found, ignoring.")
@@ -245,7 +248,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         selector = ",".join(f"{key}={value}" for key, value in deployment.spec.selector.match_labels.items())
         pod_list = self.client_corev1_api.list_namespaced_pod(namespace_name, label_selector=selector).items
         if not pod_list:
-            raise PodNotFound("No matching pod was found in the namespace %s" % (namespace_name))
+            raise PodNotFound(f"No matching pod was found in the namespace {namespace_name}")
         return pod_list[0].metadata.name
 
     def get_deployment_hpa(self, *, deployment_name: str) -> Generator:
@@ -280,7 +283,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         super().__init__(**kwargs)
 
     @retry_kubernetes_request_no_ignore
-    def _get_expected_deployment_scale_dict(self) -> Dict[int, Dict[str, int]]:
+    def _get_expected_deployment_scale_dict(self) -> dict[int, dict[str, int]]:
         """
         Return a dict of expected deployment scale:
         {
@@ -296,11 +299,11 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         }
         """
         logger.debug("Getting Expected Deployment Scale list")
-        eds_list: List[Dict[str, Any]] = []
+        eds_list: list[dict[str, Any]] = []
         release_label_keys = ["app.kubernetes.io/instance", "release"]
 
         for release_label_key in release_label_keys:
-            logger.debug(f"Getting Expected Deployment Scale list with the" f" release label key {release_label_key}")
+            logger.debug(f"Getting Expected Deployment Scale list with the release label key {release_label_key}")
             try:
                 eds_list.extend(
                     self.client_custom_objects_api.list_namespaced_custom_object(
@@ -315,7 +318,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
                 if e.status != 404:
                     raise
 
-        eds_dict: Dict[int, Dict[str, int]] = {}
+        eds_dict: dict[int, dict[str, int]] = {}
         for eds in eds_list:
             deployment_name: str = eds["spec"]["deploymentName"]
             expected_scale: int = eds["spec"]["expectedScale"]
@@ -334,14 +337,14 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         """
         Start all Pods that should be started
         """
-        expected_deployment_scale_dict: Dict[int, Dict[str, int]] = self._get_expected_deployment_scale_dict()
+        expected_deployment_scale_dict: dict[int, dict[str, int]] = self._get_expected_deployment_scale_dict()
 
         logger.info("Scaling up application Deployments...")
         if not expected_deployment_scale_dict:
             logger.info("No Deployments to scale up")
             return
 
-        priority_dict: Dict[str, int]
+        priority_dict: dict[str, int]
         # Don't assume anything about having a priority dict within the main dict
         # So we manually test for existence
         scaled: bool = False
@@ -358,7 +361,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         else:
             logger.info("No Deployments to scale up")
 
-    def _are_deployments_stopped(self, deployment_dict: Dict[str, int]) -> bool:
+    def _are_deployments_stopped(self, deployment_dict: dict[str, int]) -> bool:
         for deployment_name in deployment_dict:
             if not self.is_deployment_stopped(deployment_name):
                 return False
@@ -377,7 +380,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
             hpa.spec.scale_target_ref.name = deployment_name
             self.patch_deployment_hpa(hpa_name=hpa.metadata.name, body=hpa)
 
-    def _stop_deployments(self, deployment_dict: Dict[str, int]) -> None:
+    def _stop_deployments(self, deployment_dict: dict[str, int]) -> None:
         """
         Scale down a dict (deployment_name, expected_scale) of Deployments.
         """
@@ -397,7 +400,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         stop all deployments, then wait for actual stop, by priority (descending order):
         Example: stop all deployments with priority 1, then all deployments with priority 0
         """
-        expected_deployment_scale_dict: Dict[int, Dict[str, int]] = self._get_expected_deployment_scale_dict()
+        expected_deployment_scale_dict: dict[int, dict[str, int]] = self._get_expected_deployment_scale_dict()
 
         logger.info("Scaling down application Deployments...")
         if not expected_deployment_scale_dict:
@@ -405,9 +408,9 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
             return
 
         priority: int
-        priorities: List[int] = sorted(expected_deployment_scale_dict, reverse=True)
+        priorities: list[int] = sorted(expected_deployment_scale_dict, reverse=True)
         for priority in priorities:
-            priority_dict: Dict[str, int] = expected_deployment_scale_dict[priority]
+            priority_dict: dict[str, int] = expected_deployment_scale_dict[priority]
             if len(priority_dict):
                 self._stop_deployments(priority_dict)
         logger.info("Done scaling down application Deployments.")
@@ -416,12 +419,12 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         self,
         job_name: str,
         container_image: str,
-        labels: Dict[str, str],
-        command: Union[str, None] = None,
-        args: Union[List[str], None] = None,
-        environment_variables: Union[Dict["str", "str"], None] = None,
+        labels: dict[str, str],
+        command: str | None = None,
+        args: list[str] | None = None,
+        environment_variables: dict["str", "str"] | None = None,
         ttl_seconds_after_finished: int = 1800,
-        image_pull_secrets: Union[List[kubernetes.client.V1LocalObjectReference], None] = None,
+        image_pull_secrets: list[kubernetes.client.V1LocalObjectReference] | None = None,
         image_pull_policy: str = "IfNotPresent",
         priority_class_name: str = "",
     ) -> kubernetes.client.V1Job:
@@ -474,7 +477,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         try:
             return self.client_batchv1_api.create_namespaced_job(self.namespace, job_body)
         except kubernetes.client.rest.ApiException as e:
-            print("Exception when calling BatchV1Api->create_namespaced_job: %s\n" % e)
+            print(f"Exception when calling BatchV1Api->create_namespaced_job: {e}\n")
 
     def get_job(self, job_name: str) -> kubernetes.client.V1Job:
         """

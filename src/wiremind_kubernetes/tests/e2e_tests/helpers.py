@@ -3,7 +3,7 @@ import logging
 import subprocess
 import sys
 import urllib.parse
-from typing import Any, Dict, List
+from typing import Any
 
 import kubernetes
 
@@ -17,7 +17,12 @@ DEFAULT_TEST_IPS_WHITELISTED = [
     "kubernetes.docker.internal",  # Docker for Mac
 ]
 
-DEFAULT_TEST_NODES_WHITELISTED = ["minikube", "kind-control-plane", "kind", "kind-worker"]
+DEFAULT_TEST_NODES_WHITELISTED = [
+    "minikube",
+    "kind-control-plane",
+    "kind",
+    "kind-worker",
+]
 
 
 def get_default_kube_context() -> str:
@@ -31,7 +36,7 @@ def get_default_kube_context() -> str:
         return ""
 
 
-def is_ip_whitelisted(*, ips_whitelisted: List[str]) -> bool:
+def is_ip_whitelisted(*, ips_whitelisted: list[str]) -> bool:
     api_server = subprocess.check_output(
         "kubectl config view --minify | grep server | cut -f 2- -d ':' | tr -d ' '",
         shell=True,
@@ -42,7 +47,7 @@ def is_ip_whitelisted(*, ips_whitelisted: List[str]) -> bool:
     return hostname in ips_whitelisted
 
 
-def is_node_whitelisted(*, nodes_whitelisted: List[str]) -> bool:
+def is_node_whitelisted(*, nodes_whitelisted: list[str]) -> bool:
     output, *_ = run_command("kubectl get nodes -o name", return_result=True)
     cluster_nodes = [x for x in output.replace("node/", "").split("\n") if x != ""]
     for node in cluster_nodes:
@@ -53,8 +58,8 @@ def is_node_whitelisted(*, nodes_whitelisted: List[str]) -> bool:
 
 def check_using_test_cluster(
     *,
-    ips_whitelisted: List[str] = DEFAULT_TEST_IPS_WHITELISTED,
-    nodes_whitelisted: List[str] = DEFAULT_TEST_NODES_WHITELISTED,
+    ips_whitelisted: list[str] = DEFAULT_TEST_IPS_WHITELISTED,
+    nodes_whitelisted: list[str] = DEFAULT_TEST_NODES_WHITELISTED,
 ) -> bool:
     """
     Will sys.exit(1) if kubectl current context api server is not a test cluster (like kind, minikube, etc)
@@ -87,8 +92,9 @@ def get_k8s_username() -> str:
     return username
 
 
-def kubectl_get_json(*, resource: str, namespace: str, name: str) -> Dict[str, Any]:
+def kubectl_get_json(*, resource: str, namespace: str, name: str) -> dict[str, Any]:
     output, *_ = run_command(
-        f"kubectl get {resource} {name} -n {namespace} --ignore-not-found -o json", return_result=True
+        f"kubectl get {resource} {name} -n {namespace} --ignore-not-found -o json",
+        return_result=True,
     )
     return json.loads(output or "{}")

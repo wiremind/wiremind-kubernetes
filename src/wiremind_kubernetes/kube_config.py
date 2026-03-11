@@ -1,13 +1,12 @@
 import logging
 import os
-from typing import Optional
 
 import kubernetes
 
 logger = logging.getLogger(__name__)
 
 
-def _load_kubeconfig(config_file: Optional[str] = None, context: Optional[str] = None) -> None:
+def _load_kubeconfig(config_file: str | None = None, context: str | None = None) -> None:
     kubernetes.config.load_kube_config(config_file=config_file, context=context)
     logger.debug("Kubernetes configuration successfully set.")
 
@@ -18,7 +17,9 @@ def _load_incluster_config() -> None:
 
 
 def load_kubernetes_config(
-    use_kubeconfig: Optional[bool] = None, config_file: Optional[str] = None, context: Optional[str] = None
+    use_kubeconfig: bool | None = None,
+    config_file: str | None = None,
+    context: str | None = None,
 ) -> None:
     """
     Load kubernetes configuration in memory, either from incluster method or from kubeconfig.

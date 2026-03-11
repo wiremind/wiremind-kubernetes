@@ -33,7 +33,10 @@ def test_stop_pods_priority(mocker: MockerFixture) -> None:
     mocked_stop_deployments = mocker.patch("wiremind_kubernetes.KubernetesDeploymentManager._stop_deployments")
 
     kdm = wiremind_kubernetes.KubernetesDeploymentManager(
-        should_load_kubernetes_config=False, namespace="foo", release_name="concerned", dry_run=True
+        should_load_kubernetes_config=False,
+        namespace="foo",
+        release_name="concerned",
+        dry_run=True,
     )
     kdm.stop_pods()
 
@@ -58,11 +61,15 @@ def test_stop_deployments_correctly_wait(mocker: MockerFixture) -> None:
     deployment_dict = {"my-pod": 42, "my-other-pod": 113}
 
     mocked_are_deployments_stopped = mocker.patch(
-        "wiremind_kubernetes.KubernetesDeploymentManager._are_deployments_stopped", side_effect=[False, False, True]
+        "wiremind_kubernetes.KubernetesDeploymentManager._are_deployments_stopped",
+        side_effect=[False, False, True],
     )
 
     kdm = wiremind_kubernetes.KubernetesDeploymentManager(
-        should_load_kubernetes_config=False, namespace="foo", release_name="concerned", dry_run=True
+        should_load_kubernetes_config=False,
+        namespace="foo",
+        release_name="concerned",
+        dry_run=True,
     )
     kdm._stop_deployments(deployment_dict)
 

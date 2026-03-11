@@ -1,6 +1,7 @@
 """
 wiremind-kubernetes
 """
+
 from setuptools import find_packages, setup
 
 with open("VERSION") as version_file:
@@ -16,13 +17,7 @@ extra_require_mypy = [
 ]
 extra_require_dev = (
     [
-        "flake8",
-        "black",
-        "isort",
-        "bandit",
-        "flake8-mutable",
-        "pip-tools>=3.7.0",
-        "pyupgrade",
+        "ruff",
         "safety",
     ]
     + extra_require_mypy
@@ -55,11 +50,14 @@ allowing to scale down ALL Deployments of a Helm Release marked as such).""",
         "mypy": extra_require_mypy,
         "test": extra_require_test,
     },
-    python_requires=">=3.9.0",
+    python_requires=">=3.13.0",
     keywords=["kubernetes"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
     ],
 )

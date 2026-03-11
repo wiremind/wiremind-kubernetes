@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Generator, Optional
+from collections.abc import Generator
 
 import kubernetes
 import pytest
@@ -107,12 +107,12 @@ def clean_os_environ() -> Generator:
     ],
 )
 def test_load_kubernetes_config_1(
-    use_kubeconfig: Optional[bool],
-    config_file: Optional[str],
-    context: Optional[str],
-    extra_env_vars: Dict[str, str],
+    use_kubeconfig: bool | None,
+    config_file: str | None,
+    context: str | None,
+    extra_env_vars: dict[str, str],
     service_token_present: bool,
-    should_call: Optional[str],
+    should_call: str | None,
     mocker: MockerFixture,
 ) -> None:
     """
@@ -127,7 +127,10 @@ def test_load_kubernetes_config_1(
     # merge extra_env_vars with os.environ
     mocker.patch.dict(os.environ, extra_env_vars)
     # os.path.exists is used ONLY to check for token file in wiremind_kubernetes.kube_config for now
-    mocker.patch("wiremind_kubernetes.kube_config.os.path.exists", kawrgs={"side_effect": service_token_present})
+    mocker.patch(
+        "wiremind_kubernetes.kube_config.os.path.exists",
+        kawrgs={"side_effect": service_token_present},
+    )
 
     load_kubernetes_config(use_kubeconfig=use_kubeconfig, config_file=config_file, context=context)
 
