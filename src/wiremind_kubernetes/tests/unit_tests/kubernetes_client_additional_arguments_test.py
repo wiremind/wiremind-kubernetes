@@ -10,12 +10,8 @@ def test_kubernetes_client_additional_arguments_core_v1_api(
     """
     Test that we add mandatory args to each function call of kubernetes client
     """
-    mocked_read_namespaced_pod = mocker.patch(
-        "kubernetes.client.CoreV1Api.read_namespaced_pod"
-    )
-    mocked_create_namespaced_pod = mocker.patch(
-        "kubernetes.client.CoreV1Api.create_namespaced_pod"
-    )
+    mocked_read_namespaced_pod = mocker.patch("kubernetes.client.CoreV1Api.read_namespaced_pod")
+    mocked_create_namespaced_pod = mocker.patch("kubernetes.client.CoreV1Api.create_namespaced_pod")
 
     kubernetes_helper = wiremind_kubernetes.kubernetes_helper.KubernetesHelper(
         dry_run=True, should_load_kubernetes_config=False
@@ -25,9 +21,7 @@ def test_kubernetes_client_additional_arguments_core_v1_api(
     mocked_read_namespaced_pod.assert_called_once_with("foo", "bar", pretty=True)
 
     kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", "bar")
-    mocked_create_namespaced_pod.assert_called_once_with(
-        "foo", "bar", pretty=True, dry_run="All"
-    )
+    mocked_create_namespaced_pod.assert_called_once_with("foo", "bar", pretty=True, dry_run="All")
 
 
 def test_kubernetes_client_additional_arguments_disabled_core_v1_api(
@@ -36,12 +30,8 @@ def test_kubernetes_client_additional_arguments_disabled_core_v1_api(
     """
     Test that we do not add args to each function call of kubernetes client
     """
-    mocked_read_namespaced_pod = mocker.patch(
-        "kubernetes.client.CoreV1Api.read_namespaced_pod"
-    )
-    mocked_create_namespaced_pod = mocker.patch(
-        "kubernetes.client.CoreV1Api.create_namespaced_pod"
-    )
+    mocked_read_namespaced_pod = mocker.patch("kubernetes.client.CoreV1Api.read_namespaced_pod")
+    mocked_create_namespaced_pod = mocker.patch("kubernetes.client.CoreV1Api.create_namespaced_pod")
 
     kubernetes_helper = wiremind_kubernetes.kubernetes_helper.KubernetesHelper(
         dry_run=True, pretty=False, should_load_kubernetes_config=False
@@ -92,18 +82,12 @@ def test_custom_objects_read_methods_skip_pretty(
 
 def test_custom_objects_list_methods_keep_pretty(mocker: MockerFixture) -> None:
     # Keep the shared pretty behavior on list methods that still accept it.
-    mocked_list_cluster_custom_object = mocker.patch(
-        "kubernetes.client.CustomObjectsApi.list_cluster_custom_object"
-    )
+    mocked_list_cluster_custom_object = mocker.patch("kubernetes.client.CustomObjectsApi.list_cluster_custom_object")
 
     kubernetes_helper = wiremind_kubernetes.kubernetes_helper.KubernetesHelper(
         dry_run=True, should_load_kubernetes_config=False
     )
 
-    kubernetes_helper.client_custom_objects_api.list_cluster_custom_object(
-        "group", "version", "plural"
-    )
+    kubernetes_helper.client_custom_objects_api.list_cluster_custom_object("group", "version", "plural")
 
-    mocked_list_cluster_custom_object.assert_called_once_with(
-        "group", "version", "plural", pretty=True
-    )
+    mocked_list_cluster_custom_object.assert_called_once_with("group", "version", "plural", pretty=True)

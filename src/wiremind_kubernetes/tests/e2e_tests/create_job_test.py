@@ -6,6 +6,7 @@ import kubernetes
 from pytest_mock import MockerFixture
 
 from wiremind_kubernetes import KubernetesDeploymentManager
+
 from .conftest import TEST_NAMESPACE
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,9 @@ def test_create_job(concerned_dm: KubernetesDeploymentManager, create_namespace:
     job_name = "my-test-job"
     concerned_dm.create_job(
         concerned_dm.generate_job(
-            job_name=job_name, container_image="gcr.io/google_containers/pause-amd64:3.1", labels={"foo": "bar"}
+            job_name=job_name,
+            container_image="gcr.io/google_containers/pause-amd64:3.1",
+            labels={"foo": "bar"},
         )
     )
     for _ in range(1, 20):
@@ -50,7 +53,8 @@ def test_create_job(concerned_dm: KubernetesDeploymentManager, create_namespace:
 
     for _ in range(1, 30):
         pod_list = concerned_dm.client_corev1_api.list_namespaced_pod(
-            TEST_NAMESPACE, label_selector=f"job-name={concerned_dm.release_name}-{job_name}"
+            TEST_NAMESPACE,
+            label_selector=f"job-name={concerned_dm.release_name}-{job_name}",
         ).items
         if not pod_list:
             break

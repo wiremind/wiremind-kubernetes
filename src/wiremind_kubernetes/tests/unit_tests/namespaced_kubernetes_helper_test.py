@@ -23,7 +23,8 @@ def test_is_deployment_stopped_ignores_failed(mocker: MockerFixture) -> None:
     )
 
     mocker.patch(
-        "wiremind_kubernetes.NamespacedKubernetesHelper._get_pods_from_deployment", return_value=[DummyPodObject()]
+        "wiremind_kubernetes.NamespacedKubernetesHelper._get_pods_from_deployment",
+        return_value=[DummyPodObject()],
     )
 
     assert namespaced_kubernetes_helper.is_deployment_stopped("bar")

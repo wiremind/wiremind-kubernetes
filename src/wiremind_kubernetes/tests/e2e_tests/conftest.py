@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from typing import Generator
+from collections.abc import Generator
 
 import kubernetes
 import pytest
