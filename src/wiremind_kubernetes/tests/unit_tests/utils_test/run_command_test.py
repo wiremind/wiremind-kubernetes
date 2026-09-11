@@ -24,6 +24,35 @@ def test_run_command_succeeded(mocker: MockerFixture) -> None:
     log_spy.assert_called_with("lol")
 
 
+def test_run_command_closes_stdout(mocker: MockerFixture) -> None:
+    """
+    Test that the stdout pipe is closed once the command has been run.
+
+    Leaving it to the garbage collector emits a ResourceWarning, which turns into an
+    error for any caller running pytest with -W error.
+    """
+    popen_spy = mocker.spy(subprocess, "Popen")
+
+    run_command("echo lol")
+
+    process = popen_spy.spy_return
+    assert process.stdout is not None
+    assert process.stdout.closed
+
+
+def test_run_command_closes_stdout_with_return_result(mocker: MockerFixture) -> None:
+    """
+    Test that the stdout pipe is also closed when return_result is used.
+    """
+    popen_spy = mocker.spy(subprocess, "Popen")
+
+    run_command("echo lol", return_result=True)
+
+    process = popen_spy.spy_return
+    assert process.stdout is not None
+    assert process.stdout.closed
+
+
 def test_run_command_with_array_succeeded(mocker: MockerFixture) -> None:
     """
     Test that running a working command given through array works as expected.
