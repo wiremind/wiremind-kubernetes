@@ -35,25 +35,24 @@ def run_command(
     else:
         interpreted_command = command
 
-    process = subprocess.Popen(
+    with subprocess.Popen(
         interpreted_command,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         universal_newlines=True,
         **kw_args,
-    )
+    ) as process:
+        if return_result:
+            out, err = process.communicate()
+            return (out, err, process.returncode)
 
-    if return_result:
-        out, err = process.communicate()
-        return (out, err, process.returncode)
+        if process.stdout:
+            for line in iter(process.stdout.readline, ""):
+                line_callback(line.strip())
+        process.wait()
 
-    if process.stdout:
-        for line in iter(process.stdout.readline, ""):
-            line_callback(line.strip())
-    process.wait()
-
-    if process.returncode:
-        raise subprocess.CalledProcessError(process.returncode, command)
+        if process.returncode:
+            raise subprocess.CalledProcessError(process.returncode, command)
 
     return "", "", 0
 
