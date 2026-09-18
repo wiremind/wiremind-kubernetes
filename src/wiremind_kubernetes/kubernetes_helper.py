@@ -197,10 +197,14 @@ class NamespacedKubernetesHelper(KubernetesHelper):
                 logger.warning("Not found, ignoring.")
                 return True
 
+        # Terminal phases hold no resources and must not count as living replicas.
+        # ("Failed") without a trailing comma is a string, so `not in` becomes a
+        # substring test rather than a membership test.
+        TERMINAL_POD_PHASES = ("Failed", "Succeeded")
+
         current_scale = 0
-        terminal_pod_phases = ("Failed", "Succeeded")
         for pod in pod_list:
-            if pod.status.phase not in terminal_pod_phases:
+            if pod.status.phase not in TERMINAL_POD_PHASES:
                 current_scale += 1
 
         if current_scale > 0:
