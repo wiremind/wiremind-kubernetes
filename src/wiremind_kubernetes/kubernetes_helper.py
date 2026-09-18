@@ -132,6 +132,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         logger.debug("Getting statefulset scale for %s", statefulset_name)
         return self.client_appsv1_api.read_namespaced_stateful_set_scale(statefulset_name, self.namespace)
 
+    @retry_kubernetes_request
     def scale_down_statefulset(self, statefulset_name: str) -> None:
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Deleting all Pods for %s", statefulset_name)
@@ -147,6 +148,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         self.client_appsv1_api.patch_namespaced_deployment_scale(deployment_name, self.namespace, body)
         logger.debug("Done deleting.")
 
+    @retry_kubernetes_request
     def scale_up_statefulset(self, statefulset_name: str, pod_amount: int = 1) -> None:
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Recreating backend Pods for %s", statefulset_name)
