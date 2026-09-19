@@ -199,7 +199,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
 
         current_scale = 0
         for pod in pod_list:
-            if pod.status.phase not in ("Failed"):
+            if pod.status.phase not in ("Failed", "Succeeded"):
                 current_scale += 1
 
         if current_scale > 0:
