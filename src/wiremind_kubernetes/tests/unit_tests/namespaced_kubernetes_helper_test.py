@@ -1,11 +1,16 @@
 from pytest_mock import MockerFixture
+import pytest
 
 import wiremind_kubernetes
 
 
-def test_is_deployment_stopped_ignores_failed(mocker: MockerFixture) -> None:
+@pytest.mark.parametrize(
+    "phase, expected_stopped",
+    [("Failed", True), ("Succeeded", True), ("Running", False)],
+)
+def test_is_deployment_stopped(mocker: MockerFixture, phase: str, expected_stopped: bool) -> None:
     """
-    Test that we don't consider failed (like evicted) Pods as living Pods
+    Test that we only consider non-terminal Pods as living Pods
     """
     mocker.patch("kubernetes.client.AppsV1Api")
     mocker.patch("kubernetes.client.CoreV1Api")
@@ -13,7 +18,8 @@ def test_is_deployment_stopped_ignores_failed(mocker: MockerFixture) -> None:
     mocker.patch("kubernetes.client.CustomObjectsApi")
 
     class DummyStatusObject:
-        phase = "Failed"
+        def __init__(self) -> None:
+            self.phase = phase
 
     class DummyPodObject:
         status = DummyStatusObject()
@@ -27,4 +33,4 @@ def test_is_deployment_stopped_ignores_failed(mocker: MockerFixture) -> None:
         return_value=[DummyPodObject()],
     )
 
-    assert namespaced_kubernetes_helper.is_deployment_stopped("bar")
+    assert namespaced_kubernetes_helper.is_deployment_stopped("bar") is expected_stopped

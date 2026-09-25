@@ -197,9 +197,12 @@ class NamespacedKubernetesHelper(KubernetesHelper):
                 logger.warning("Not found, ignoring.")
                 return True
 
+        # Succeeded and Failed pods are not living replicas.
+        TERMINAL_POD_PHASES = ("Failed", "Succeeded")
+
         current_scale = 0
         for pod in pod_list:
-            if pod.status.phase not in ("Failed"):
+            if pod.status.phase not in TERMINAL_POD_PHASES:
                 current_scale += 1
 
         if current_scale > 0:
