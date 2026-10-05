@@ -1,5 +1,19 @@
 # wiremind-kubernetes
 
+## v7.7.2 (2026-10-05)
+### Fix
+- is_deployment_stopped: do not count Succeeded Pods as living replicas
+
+## v7.7.1 (2026-09-11)
+### Fix
+- utils: close the stdout pipe when run_command is done
+
+## v7.7.0 (2026-03-11)
+### Fix
+- client: skip pretty on custom GET reads
+### Chore
+- upgrade dev tools and move the Python minimum version to 3.13
+
 ## v7.6.0 (2025-11-28)
 ### Feature
 - autoscaling api to v2 from v1
