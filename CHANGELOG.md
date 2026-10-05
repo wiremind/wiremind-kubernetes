@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.7.2 (2026-10-05)
+### Fix
+- is_deployment_stopped: do not count Succeeded Pods as living replicas
+
 ## v7.7.1 (2026-09-11)
 ### Fix
 - utils: close the stdout pipe when run_command is done
