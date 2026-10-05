@@ -1,12 +1,12 @@
-from pytest_mock import MockerFixture
 import pytest
+from pytest_mock import MockerFixture
 
 import wiremind_kubernetes
 
 
 @pytest.mark.parametrize(
     "phase, expected_stopped",
-    [("Failed", True), ("Succeeded", True), ("Running", False)],
+    [("Failed", True), ("Succeeded", True), ("Running", False), ("Pending", False)],
 )
 def test_is_deployment_stopped(mocker: MockerFixture, phase: str, expected_stopped: bool) -> None:
     """

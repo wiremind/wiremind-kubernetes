@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 
 HPA_ID_PREFIX = "wm--disabled--kube"
 
+# A Pod in a terminal phase holds no resource: it is not a living replica.
+TERMINAL_POD_PHASES = ("Failed", "Succeeded")
+
 
 class KubernetesHelper:
     """
@@ -196,9 +199,6 @@ class NamespacedKubernetesHelper(KubernetesHelper):
             if e.status == 404:
                 logger.warning("Not found, ignoring.")
                 return True
-
-        # Succeeded and Failed pods are not living replicas.
-        TERMINAL_POD_PHASES = ("Failed", "Succeeded")
 
         current_scale = 0
         for pod in pod_list:
