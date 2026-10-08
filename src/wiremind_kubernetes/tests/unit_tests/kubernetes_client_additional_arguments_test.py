@@ -1,3 +1,4 @@
+import kubernetes.client
 import pytest
 from pytest_mock import MockerFixture
 
@@ -17,11 +18,12 @@ def test_kubernetes_client_additional_arguments_core_v1_api(
         dry_run=True, should_load_kubernetes_config=False
     )
 
+    pod = kubernetes.client.V1Pod()
     kubernetes_helper.client_corev1_api.read_namespaced_pod("foo", "bar")
     mocked_read_namespaced_pod.assert_called_once_with("foo", "bar", pretty="true")
 
-    kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", "bar")
-    mocked_create_namespaced_pod.assert_called_once_with("foo", "bar", pretty="true", dry_run="All")
+    kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", pod)
+    mocked_create_namespaced_pod.assert_called_once_with("foo", pod, pretty="true", dry_run="All")
 
 
 def test_kubernetes_client_additional_arguments_disabled_core_v1_api(
@@ -37,11 +39,12 @@ def test_kubernetes_client_additional_arguments_disabled_core_v1_api(
         dry_run=True, pretty=False, should_load_kubernetes_config=False
     )
 
+    pod = kubernetes.client.V1Pod()
     kubernetes_helper.client_corev1_api.read_namespaced_pod("foo", "bar")
     mocked_read_namespaced_pod.assert_called_once_with("foo", "bar")
 
-    kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", "bar")
-    mocked_create_namespaced_pod.assert_called_once_with("foo", "bar", dry_run="All")
+    kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", pod)
+    mocked_create_namespaced_pod.assert_called_once_with("foo", pod, dry_run="All")
 
 
 @pytest.mark.parametrize(
@@ -108,4 +111,4 @@ def test_pretty_passes_generated_client_validation(mocker: MockerFixture) -> Non
     with pytest.raises(RequestSent):
         kubernetes_helper.client_corev1_api.read_namespace("foo")
     with pytest.raises(RequestSent):
-        kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", {})
+        kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", kubernetes.client.V1Pod())

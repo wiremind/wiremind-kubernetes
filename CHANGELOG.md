@@ -3,6 +3,7 @@
 ## v7.7.3 (2026-10-08)
 ### Fix
 - client: send the pretty query parameter as a string, kubernetes>=37 rejects a bool
+- typing: comply with the kubernetes>=37 type hints; a workload selector without matchLabels raises ValueError
 
 ## v7.7.2 (2026-10-05)
 ### Fix
