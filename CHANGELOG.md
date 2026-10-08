@@ -1,5 +1,9 @@
 # wiremind-kubernetes
 
+## v7.7.3 (2026-10-08)
+### Fix
+- client: send the pretty query parameter as a string, kubernetes>=37 rejects a bool
+
 ## v7.7.2 (2026-10-05)
 ### Fix
 - is_deployment_stopped: do not count Succeeded Pods as living replicas

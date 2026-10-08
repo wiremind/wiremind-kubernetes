@@ -20,7 +20,8 @@ class ClientWithArguments:
         self.read_additional_arguments = {}
         self.read_argument_exclusions = {}
         if pretty:
-            self.read_additional_arguments["pretty"] = pretty
+            # The generated client types `pretty` as a string and kubernetes>=37 rejects a bool.
+            self.read_additional_arguments["pretty"] = "true"
         # Every request, either read or write, will have those arguments added
         self.additional_arguments = self.read_additional_arguments.copy()
         if dry_run:

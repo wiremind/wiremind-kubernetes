@@ -18,10 +18,10 @@ def test_kubernetes_client_additional_arguments_core_v1_api(
     )
 
     kubernetes_helper.client_corev1_api.read_namespaced_pod("foo", "bar")
-    mocked_read_namespaced_pod.assert_called_once_with("foo", "bar", pretty=True)
+    mocked_read_namespaced_pod.assert_called_once_with("foo", "bar", pretty="true")
 
     kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", "bar")
-    mocked_create_namespaced_pod.assert_called_once_with("foo", "bar", pretty=True, dry_run="All")
+    mocked_create_namespaced_pod.assert_called_once_with("foo", "bar", pretty="true", dry_run="All")
 
 
 def test_kubernetes_client_additional_arguments_disabled_core_v1_api(
@@ -90,4 +90,22 @@ def test_custom_objects_list_methods_keep_pretty(mocker: MockerFixture) -> None:
 
     kubernetes_helper.client_custom_objects_api.list_cluster_custom_object("group", "version", "plural")
 
-    mocked_list_cluster_custom_object.assert_called_once_with("group", "version", "plural", pretty=True)
+    mocked_list_cluster_custom_object.assert_called_once_with("group", "version", "plural", pretty="true")
+
+
+class RequestSent(Exception):
+    pass
+
+
+def test_pretty_passes_generated_client_validation(mocker: MockerFixture) -> None:
+    # Call the real generated methods: kubernetes>=37 validates `pretty` as a string before it sends the request.
+    mocker.patch("kubernetes.client.ApiClient.call_api", side_effect=RequestSent)
+
+    kubernetes_helper = wiremind_kubernetes.kubernetes_helper.KubernetesHelper(
+        dry_run=True, should_load_kubernetes_config=False
+    )
+
+    with pytest.raises(RequestSent):
+        kubernetes_helper.client_corev1_api.read_namespace("foo")
+    with pytest.raises(RequestSent):
+        kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", {})
