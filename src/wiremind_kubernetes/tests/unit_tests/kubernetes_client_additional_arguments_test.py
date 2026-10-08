@@ -1,8 +1,24 @@
+import inspect
+from collections.abc import Callable
+
 import kubernetes.client
 import pytest
 from pytest_mock import MockerFixture
 
 import wiremind_kubernetes.kubernetes_helper
+from wiremind_kubernetes.kubernetes_client_additional_arguments import (
+    AdmissionregistrationV1ApiWithArguments,
+    AppV1ApiWithArguments,
+    AutoscalingV1ApiWithArguments,
+    AutoscalingV2ApiWithArguments,
+    BatchV1ApiWithArguments,
+    ClientWithArguments,
+    CoreV1ApiWithArguments,
+    CustomObjectsApiWithArguments,
+    NetworkingV1ApiWithArguments,
+    RbacAuthorizationV1ApiWithArguments,
+    StorageV1ApiWithArguments,
+)
 
 
 def test_kubernetes_client_additional_arguments_core_v1_api(
@@ -112,3 +128,45 @@ def test_pretty_passes_generated_client_validation(mocker: MockerFixture) -> Non
         kubernetes_helper.client_corev1_api.read_namespace("foo")
     with pytest.raises(RequestSent):
         kubernetes_helper.client_corev1_api.create_namespaced_pod("foo", kubernetes.client.V1Pod())
+
+
+def test_custom_objects_write_methods_skip_pretty(mocker: MockerFixture) -> None:
+    # Custom object patch, replace and delete methods accept dry_run but not pretty.
+    mocked_patch = mocker.patch("kubernetes.client.CustomObjectsApi.patch_namespaced_custom_object")
+
+    kubernetes_helper = wiremind_kubernetes.kubernetes_helper.KubernetesHelper(
+        dry_run=True, should_load_kubernetes_config=False
+    )
+
+    kubernetes_helper.client_custom_objects_api.patch_namespaced_custom_object(
+        "group", "version", "namespace", "plural", "name", {}
+    )
+
+    mocked_patch.assert_called_once_with("group", "version", "namespace", "plural", "name", {}, dry_run="All")
+
+
+@pytest.mark.parametrize(
+    "wrapper_class",
+    [
+        AdmissionregistrationV1ApiWithArguments,
+        AppV1ApiWithArguments,
+        AutoscalingV1ApiWithArguments,
+        AutoscalingV2ApiWithArguments,
+        BatchV1ApiWithArguments,
+        CoreV1ApiWithArguments,
+        CustomObjectsApiWithArguments,
+        NetworkingV1ApiWithArguments,
+        RbacAuthorizationV1ApiWithArguments,
+        StorageV1ApiWithArguments,
+    ],
+)
+def test_additional_arguments_are_method_parameters(wrapper_class: Callable[..., ClientWithArguments]) -> None:
+    # Each generated method must accept every argument that the wrapper adds to its calls.
+    wrapper = wrapper_class(dry_run=True, pretty=True)
+    for method_name, method in inspect.getmembers(wrapper.client, inspect.ismethod):
+        if method_name.startswith("_"):
+            continue
+        parameters = inspect.signature(method).parameters
+        if any(parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters.values()):
+            pytest.skip("kubernetes<37 hides the method parameters in **kwargs")
+        assert set(wrapper.get_additional_arguments(method_name)) <= set(parameters), method_name
