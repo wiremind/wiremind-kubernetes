@@ -2,7 +2,7 @@ import logging
 import pprint
 import time
 from collections.abc import Generator
-from typing import Any
+from typing import Any, cast
 
 import kubernetes
 
@@ -28,6 +28,16 @@ HPA_ID_PREFIX = "wm--disabled--kube"
 
 # A Pod in a terminal phase holds no resource: it is not a living replica.
 TERMINAL_POD_PHASES = ("Failed", "Succeeded")
+
+
+def _match_labels_selector(match_labels: dict[str, str] | None) -> str:
+    """
+    Build a label selector from the matchLabels of a workload selector.
+    """
+    if not match_labels:
+        # An empty label selector selects every Pod of the namespace.
+        raise ValueError("The workload selector has no matchLabels")
+    return ",".join(f"{key}={value}" for key, value in match_labels.items())
 
 
 class KubernetesHelper:
@@ -70,14 +80,32 @@ class KubernetesHelper:
         """
         if should_load_kubernetes_config:
             load_kubernetes_config(use_kubeconfig=use_kubeconfig, context=context)
-        self.client_corev1_api = CoreV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_appsv1_api = AppV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_batchv1_api = BatchV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_autoscalingv2_api = AutoscalingV2ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_custom_objects_api = CustomObjectsApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_rbac_authorization_v1_api = RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_networking_v1_api = NetworkingV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
-        self.client_storage_v1_api = StorageV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        # The wrappers forward every call to the generated client: expose its type to callers.
+        self.client_corev1_api = cast(
+            kubernetes.client.CoreV1Api, CoreV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
+        self.client_appsv1_api = cast(
+            kubernetes.client.AppsV1Api, AppV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
+        self.client_batchv1_api = cast(
+            kubernetes.client.BatchV1Api, BatchV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
+        self.client_autoscalingv2_api = cast(
+            kubernetes.client.AutoscalingV2Api, AutoscalingV2ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
+        self.client_custom_objects_api = cast(
+            kubernetes.client.CustomObjectsApi, CustomObjectsApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
+        self.client_rbac_authorization_v1_api = cast(
+            kubernetes.client.RbacAuthorizationV1Api,
+            RbacAuthorizationV1ApiWithArguments(dry_run=dry_run, pretty=pretty),
+        )
+        self.client_networking_v1_api = cast(
+            kubernetes.client.NetworkingV1Api, NetworkingV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
+        self.client_storage_v1_api = cast(
+            kubernetes.client.StorageV1Api, StorageV1ApiWithArguments(dry_run=dry_run, pretty=pretty)
+        )
         self.client_admissionregistration_v1_api = AdmissionregistrationV1ApiWithArguments(
             dry_run=dry_run, pretty=pretty
         )
@@ -138,7 +166,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
     def scale_down_statefulset(self, statefulset_name: str) -> None:
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Deleting all Pods for %s", statefulset_name)
-        body.spec.replicas = 0
+        body.spec = kubernetes.client.V1ScaleSpec(replicas=0)
         self.client_appsv1_api.patch_namespaced_stateful_set_scale(statefulset_name, self.namespace, body)
         logger.debug("Done deleting.")
 
@@ -146,14 +174,14 @@ class NamespacedKubernetesHelper(KubernetesHelper):
     def scale_down_deployment(self, deployment_name: str) -> None:
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Deleting all Pods for %s", deployment_name)
-        body.spec.replicas = 0
+        body.spec = kubernetes.client.V1ScaleSpec(replicas=0)
         self.client_appsv1_api.patch_namespaced_deployment_scale(deployment_name, self.namespace, body)
         logger.debug("Done deleting.")
 
     def scale_up_statefulset(self, statefulset_name: str, pod_amount: int = 1) -> None:
         body = self.get_statefulset_scale(statefulset_name)
         logger.debug("Recreating backend Pods for %s", statefulset_name)
-        body.spec.replicas = pod_amount
+        body.spec = kubernetes.client.V1ScaleSpec(replicas=pod_amount)
         self.client_appsv1_api.patch_namespaced_stateful_set_scale(statefulset_name, self.namespace, body)
         logger.debug("Done recreating.")
 
@@ -161,7 +189,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
     def scale_up_deployment(self, deployment_name: str, pod_amount: int) -> None:
         body = self.get_deployment_scale(deployment_name)
         logger.debug("Recreating backend Pods for %s", deployment_name)
-        body.spec.replicas = pod_amount
+        body.spec = kubernetes.client.V1ScaleSpec(replicas=pod_amount)
         self.client_appsv1_api.patch_namespaced_deployment_scale(deployment_name, self.namespace, body)
         logger.debug("Done recreating.")
 
@@ -184,7 +212,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         try:
             return self.client_corev1_api.list_namespaced_pod(
                 namespace=self.namespace,
-                label_selector=",".join(["{}={}".format(*kv) for kv in labels.items()]),
+                label_selector=_match_labels_selector(labels),
             ).items
         except kubernetes.client.rest.ApiException as e:
             if e.status == 404:
@@ -212,6 +240,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
         return True
 
     def is_deployment_ready(self, deployment_name: str, statefulset: bool = False) -> bool:
+        status: kubernetes.client.V1StatefulSet | kubernetes.client.V1Deployment
         try:
             if statefulset:
                 status = self.client_appsv1_api.read_namespaced_stateful_set_status(deployment_name, self.namespace)
@@ -223,7 +252,7 @@ class NamespacedKubernetesHelper(KubernetesHelper):
                 return True
 
         expected_replicas = status.spec.replicas
-        ready_replicas = status.status.ready_replicas
+        ready_replicas = status.status.ready_replicas if status.status else None
         resource_type = statefulset and "StatefulSet" or "Deployment"
         logger.debug(
             "%s %s has %s expected replicas and %s ready replicas",
@@ -248,11 +277,14 @@ class NamespacedKubernetesHelper(KubernetesHelper):
                 raise PodNotFound(f"No deployment {deployment_name} was found in the namespace {namespace_name}")
             else:
                 raise
-        selector = ",".join(f"{key}={value}" for key, value in deployment.spec.selector.match_labels.items())
+        selector = _match_labels_selector(deployment.spec.selector.match_labels)
         pod_list = self.client_corev1_api.list_namespaced_pod(namespace_name, label_selector=selector).items
         if not pod_list:
             raise PodNotFound(f"No matching pod was found in the namespace {namespace_name}")
-        return pod_list[0].metadata.name
+        pod_metadata = pod_list[0].metadata
+        if pod_metadata is None or pod_metadata.name is None:
+            raise PodNotFound(f"The first matching pod in the namespace {namespace_name} has no name")
+        return pod_metadata.name
 
     def get_deployment_hpa(self, *, deployment_name: str) -> Generator:
         for hpa in self.client_autoscalingv2_api.list_namespaced_horizontal_pod_autoscaler(self.namespace).items:
@@ -308,15 +340,18 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         for release_label_key in release_label_keys:
             logger.debug(f"Getting Expected Deployment Scale list with the release label key {release_label_key}")
             try:
-                eds_list.extend(
+                # The generated client returns custom objects as untyped dicts.
+                eds_response = cast(
+                    dict[str, Any],
                     self.client_custom_objects_api.list_namespaced_custom_object(
                         namespace=self.namespace,
                         group="wiremind.io",
                         version="v1",
                         plural="expecteddeploymentscales",
                         label_selector=f"{release_label_key}={self.release_name}",
-                    )["items"]
+                    ),
                 )
+                eds_list.extend(eds_response["items"])
             except kubernetes.client.rest.ApiException as e:
                 if e.status != 404:
                     raise
@@ -476,11 +511,12 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
 
         return job
 
-    def create_job(self, job_body: kubernetes.client.V1Job) -> kubernetes.client.V1Job:
+    def create_job(self, job_body: kubernetes.client.V1Job) -> kubernetes.client.V1Job | None:
         try:
             return self.client_batchv1_api.create_namespaced_job(self.namespace, job_body)
         except kubernetes.client.rest.ApiException as e:
             print(f"Exception when calling BatchV1Api->create_namespaced_job: {e}\n")
+            return None
 
     def get_job(self, job_name: str) -> kubernetes.client.V1Job:
         """
@@ -489,9 +525,11 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         job_name = f"{self.release_name}-{job_name}"
         return self.client_batchv1_api.read_namespaced_job(job_name, self.namespace)
 
-    def delete_job(self, job_name: str) -> kubernetes.client.V1Status:
+    def delete_job(self, job_name: str) -> Any:
         """
         Get a job, concatenating release_name and job_name as job name.
+
+        The generated client returns a V1Status before kubernetes 37 and a dict from kubernetes 37.
         """
         job_name = f"{self.release_name}-{job_name}"
         body = kubernetes.client.V1DeleteOptions(propagation_policy="Background")

@@ -2,37 +2,40 @@ from typing import Any
 
 import kubernetes.client
 
+# Generated client methods that send a write request to the API server.
+WRITE_METHOD_PREFIXES = ("create_", "delete_", "patch_", "replace_")
+# Generated client methods that send a read request to the API server.
+READ_METHOD_PREFIXES = ("read_", "list_")
+
 
 class ClientWithArguments:
     """
-    kubernetes.client.CoreApiV1 with arguments added in every function call.
+    Generated Kubernetes API client that adds arguments to its method calls.
 
-    Currently add dry_run support for write functions and pretty to all.
+    Add `pretty` to read and write methods, and `dry_run` to write methods.
+    The other methods (connect_*, get_*, close) do not accept these arguments.
     """
 
     client: Any
-    read_additional_arguments: dict[str, Any]
-    additional_arguments: dict[str, Any]
-    read_argument_exclusions: dict[str, set[str]]
+    dry_run: bool
+    pretty: bool
+    # Method name prefixes that accept `pretty`.
+    pretty_method_prefixes: tuple[str, ...] = READ_METHOD_PREFIXES + WRITE_METHOD_PREFIXES
 
     def __init__(self, client: Any, dry_run: bool = False, pretty: bool = True):
         self.client = client()  # like kubernetes.client.CoreV1Api
-        self.read_additional_arguments = {}
-        self.read_argument_exclusions = {}
-        if pretty:
-            self.read_additional_arguments["pretty"] = pretty
-        # Every request, either read or write, will have those arguments added
-        self.additional_arguments = self.read_additional_arguments.copy()
-        if dry_run:
-            # Dry run, in kube API, is not true or false, but either dry_run: All or not defined.
-            self.additional_arguments["dry_run"] = "All"
+        self.dry_run = dry_run
+        self.pretty = pretty
 
-    def get_read_additional_arguments(self, attr: str) -> dict[str, Any]:
-        read_additional_arguments = self.read_additional_arguments.copy()
-        # Some generated client read methods do not accept every shared read kwarg.
-        for argument_name in self.read_argument_exclusions.get(attr, set()):
-            read_additional_arguments.pop(argument_name, None)
-        return read_additional_arguments
+    def get_additional_arguments(self, method_name: str) -> dict[str, str]:
+        additional_arguments = {}
+        if self.pretty and method_name.startswith(self.pretty_method_prefixes):
+            # The generated client types `pretty` as a string and kubernetes>=37 rejects a bool.
+            additional_arguments["pretty"] = "true"
+        if self.dry_run and method_name.startswith(WRITE_METHOD_PREFIXES):
+            # The API accepts dry_run "All" or no dry_run, never a bool.
+            additional_arguments["dry_run"] = "All"
+        return additional_arguments
 
     def __getattr__(self, attr: str) -> Any:
         original_attr = getattr(self.client, attr)
@@ -40,17 +43,16 @@ class ClientWithArguments:
         if not callable(original_attr):
             return original_attr
 
-        is_write_function: bool = False
-        for name in ["create_", "delete_", "patch_", "replace_"]:
-            if attr.startswith(name):
-                is_write_function = True
-                break
+        if not attr.startswith(READ_METHOD_PREFIXES + WRITE_METHOD_PREFIXES):
+            return original_attr
+
+        # Wrap read and write methods even without additional arguments.
+        # kubernetes.watch.Watch deserializes events only for an unwrapped method,
+        # so the event format must not depend on `pretty` or `dry_run`.
+        additional_arguments = self.get_additional_arguments(attr)
 
         def fn(*args: Any, **kwargs: Any) -> Any:
-            if is_write_function:
-                kwargs.update(self.additional_arguments)
-            else:  # A read function
-                kwargs.update(self.get_read_additional_arguments(attr))
+            kwargs.update(additional_arguments)
             return original_attr(*args, **kwargs)
 
         return fn
@@ -82,18 +84,11 @@ class AutoscalingV2ApiWithArguments(ClientWithArguments):
 
 
 class CustomObjectsApiWithArguments(ClientWithArguments):
+    # Custom object methods accept `pretty` on list and create only.
+    pretty_method_prefixes = ("list_", "create_")
+
     def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
         super().__init__(client=kubernetes.client.CustomObjectsApi, dry_run=dry_run, pretty=pretty)
-        # Kubernetes custom-object GET-like methods reject `pretty`, while list methods still accept it.
-        self.read_argument_exclusions = {
-            "get_api_resources": {"pretty"},
-            "get_cluster_custom_object": {"pretty"},
-            "get_cluster_custom_object_scale": {"pretty"},
-            "get_cluster_custom_object_status": {"pretty"},
-            "get_namespaced_custom_object": {"pretty"},
-            "get_namespaced_custom_object_scale": {"pretty"},
-            "get_namespaced_custom_object_status": {"pretty"},
-        }
 
 
 class RbacAuthorizationV1ApiWithArguments(ClientWithArguments):
@@ -116,5 +111,5 @@ class StorageV1ApiWithArguments(ClientWithArguments):
 
 
 class AdmissionregistrationV1ApiWithArguments(ClientWithArguments):
-    def __init__(self, *args: Any, dry_run: bool = False, **kwargs: Any) -> None:
-        super().__init__(client=kubernetes.client.AdmissionregistrationV1Api, dry_run=dry_run)
+    def __init__(self, *args: Any, dry_run: bool = False, pretty: bool = False, **kwargs: Any) -> None:
+        super().__init__(client=kubernetes.client.AdmissionregistrationV1Api, dry_run=dry_run, pretty=pretty)
