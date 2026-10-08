@@ -4,6 +4,7 @@
 ### Fix
 - client: send the pretty query parameter as a string, kubernetes>=37 rejects a bool
 - client: add pretty and dry_run only to the methods that accept them (custom object patch, replace and delete; connect_*; close)
+- client: remove the ClientWithArguments attributes read_additional_arguments, additional_arguments, read_argument_exclusions and get_read_additional_arguments; use get_additional_arguments
 - typing: comply with the kubernetes>=37 type hints; a workload selector without matchLabels raises ValueError
 
 ## v7.7.2 (2026-10-05)

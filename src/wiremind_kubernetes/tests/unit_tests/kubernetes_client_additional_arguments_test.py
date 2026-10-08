@@ -2,6 +2,7 @@ import inspect
 from collections.abc import Callable
 
 import kubernetes.client
+import kubernetes.watch
 import pytest
 from pytest_mock import MockerFixture
 
@@ -170,3 +171,16 @@ def test_additional_arguments_are_method_parameters(wrapper_class: Callable[...,
         if any(parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters.values()):
             pytest.skip("kubernetes<37 hides the method parameters in **kwargs")
         assert set(wrapper.get_additional_arguments(method_name)) <= set(parameters), method_name
+
+
+def test_watch_return_type_does_not_depend_on_pretty() -> None:
+    # kubernetes.watch.Watch deserializes events only when it finds the return type of the method.
+    return_types = []
+    for pretty in (True, False):
+        kubernetes_helper = wiremind_kubernetes.kubernetes_helper.KubernetesHelper(
+            pretty=pretty, should_load_kubernetes_config=False
+        )
+        method = kubernetes_helper.client_corev1_api.list_namespaced_pod
+        return_types.append(kubernetes.watch.Watch().get_return_type(method))
+
+    assert return_types[0] == return_types[1]

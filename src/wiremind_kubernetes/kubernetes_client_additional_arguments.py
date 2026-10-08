@@ -43,9 +43,13 @@ class ClientWithArguments:
         if not callable(original_attr):
             return original_attr
 
-        additional_arguments = self.get_additional_arguments(attr)
-        if not additional_arguments:
+        if not attr.startswith(READ_METHOD_PREFIXES + WRITE_METHOD_PREFIXES):
             return original_attr
+
+        # Wrap read and write methods even without additional arguments.
+        # kubernetes.watch.Watch deserializes events only for an unwrapped method,
+        # so the event format must not depend on `pretty` or `dry_run`.
+        additional_arguments = self.get_additional_arguments(attr)
 
         def fn(*args: Any, **kwargs: Any) -> Any:
             kwargs.update(additional_arguments)
