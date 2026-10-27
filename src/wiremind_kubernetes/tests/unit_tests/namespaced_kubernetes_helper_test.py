@@ -8,14 +8,11 @@ import wiremind_kubernetes
     "phase, expected_stopped",
     [("Failed", True), ("Succeeded", True), ("Running", False), ("Pending", False)],
 )
+@pytest.mark.usefixtures("mocked_kubernetes_clients")
 def test_is_deployment_stopped(mocker: MockerFixture, phase: str, expected_stopped: bool) -> None:
     """
     Test that we only consider non-terminal Pods as living Pods
     """
-    mocker.patch("kubernetes.client.AppsV1Api")
-    mocker.patch("kubernetes.client.CoreV1Api")
-    mocker.patch("kubernetes.client.BatchV1Api")
-    mocker.patch("kubernetes.client.CustomObjectsApi")
 
     class DummyStatusObject:
         def __init__(self) -> None:

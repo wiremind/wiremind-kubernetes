@@ -1,11 +1,9 @@
 import os
 from collections.abc import Generator
 
-import kubernetes
 import pytest
 from pytest_mock import MockerFixture
 
-import wiremind_kubernetes
 from wiremind_kubernetes.kube_config import load_kubernetes_config
 
 
@@ -122,8 +120,8 @@ def test_load_kubernetes_config_1(
     load_kube_config: str = "wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config"
     load_incluster_config: str = "wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config"
 
-    mocker.patch(load_kube_config)
-    mocker.patch(load_incluster_config)
+    mocked_load_kube_config = mocker.patch(load_kube_config)
+    mocked_load_incluster_config = mocker.patch(load_incluster_config)
     # merge extra_env_vars with os.environ
     mocker.patch.dict(os.environ, extra_env_vars)
     # os.path.exists is used ONLY to check for token file in wiremind_kubernetes.kube_config for now
@@ -135,11 +133,11 @@ def test_load_kubernetes_config_1(
     load_kubernetes_config(use_kubeconfig=use_kubeconfig, config_file=config_file, context=context)
 
     if should_call == load_kube_config:
-        kubernetes.config.load_kube_config.assert_called_once_with(config_file=config_file, context=context)
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config.call_count == 0
+        mocked_load_kube_config.assert_called_once_with(config_file=config_file, context=context)
+        assert mocked_load_incluster_config.call_count == 0
     elif should_call == load_incluster_config:
-        kubernetes.config.load_incluster_config.assert_called_once_with()
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config.call_count == 0
+        mocked_load_incluster_config.assert_called_once_with()
+        assert mocked_load_kube_config.call_count == 0
     else:
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_kube_config.call_count == 0
-        assert wiremind_kubernetes.kube_config.kubernetes.config.load_incluster_config.call_count == 0
+        assert mocked_load_kube_config.call_count == 0
+        assert mocked_load_incluster_config.call_count == 0

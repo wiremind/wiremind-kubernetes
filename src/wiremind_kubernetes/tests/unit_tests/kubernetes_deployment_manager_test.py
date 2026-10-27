@@ -1,10 +1,12 @@
 import unittest
 
+import pytest
 from pytest_mock import MockerFixture
 
 import wiremind_kubernetes
 
 
+@pytest.mark.usefixtures("mocked_kubernetes_clients")
 def test_stop_pods_priority(mocker: MockerFixture) -> None:
     """
     Test that we honor priorities when stopping workloads.
@@ -12,10 +14,6 @@ def test_stop_pods_priority(mocker: MockerFixture) -> None:
     i.e that we stop all deployments with the highest priority first, then wait for all of those to be stopped
     then continue.
     """
-    mocker.patch("kubernetes.client.AppsV1Api")
-    mocker.patch("kubernetes.client.CoreV1Api")
-    mocker.patch("kubernetes.client.BatchV1Api")
-    mocker.patch("kubernetes.client.CustomObjectsApi")
 
     mocker.patch(
         "wiremind_kubernetes.KubernetesDeploymentManager._get_expected_deployment_scale_dict",
@@ -49,15 +47,13 @@ def test_stop_pods_priority(mocker: MockerFixture) -> None:
     assert mocked_stop_deployments.mock_calls == expected_calls
 
 
+@pytest.mark.usefixtures("mocked_kubernetes_clients")
 def test_stop_deployments_correctly_wait(mocker: MockerFixture) -> None:
     """
     Test that we wait for deployments to be stopped
     """
-    mocker.patch("kubernetes.client.AppsV1Api")
-    mocker.patch("kubernetes.client.CoreV1Api")
-    mocker.patch("kubernetes.client.BatchV1Api")
-    mocker.patch("kubernetes.client.CustomObjectsApi")
 
+    mocked_sleep = mocker.patch("wiremind_kubernetes.kubernetes_helper.time.sleep")
     deployment_dict = {"my-pod": 42, "my-other-pod": 113}
 
     mocked_are_deployments_stopped = mocker.patch(
@@ -80,3 +76,4 @@ def test_stop_deployments_correctly_wait(mocker: MockerFixture) -> None:
     ]
 
     assert mocked_are_deployments_stopped.mock_calls == expected_calls
+    assert mocked_sleep.call_count == 2

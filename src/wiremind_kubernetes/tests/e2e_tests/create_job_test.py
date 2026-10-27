@@ -28,14 +28,17 @@ def test_create_job(concerned_dm: KubernetesDeploymentManager, create_namespace:
         created_job = concerned_dm.client_batchv1_api.read_namespaced_job(
             concerned_dm.release_name + "-" + job_name, TEST_NAMESPACE
         )
-        if created_job.status.active == 1:
+        if created_job.status and created_job.status.active == 1:
             break
         else:
             logger.info("job not ready yet, waiting...")
             time.sleep(5)
+    assert created_job.status is not None
     assert created_job.status.active == 1
     # The priorityclass was set to "", Kube will ignore it
     # and render the priority of the Pod to 0
+    assert created_job.spec is not None
+    assert created_job.spec.template.spec is not None
     assert created_job.spec.template.spec.priority_class_name is None
 
     concerned_dm.delete_job(job_name=job_name)
@@ -86,11 +89,14 @@ def test_create_job_argument(concerned_dm: KubernetesDeploymentManager, create_n
         created_job = concerned_dm.client_batchv1_api.read_namespaced_job(
             concerned_dm.release_name + "-" + job_name, TEST_NAMESPACE
         )
-        if created_job.status.succeeded == 1:
+        if created_job.status and created_job.status.succeeded == 1:
             break
         else:
             logger.info("job not finished yet, waiting...")
             time.sleep(5)
+    assert created_job.status is not None
     assert created_job.status.succeeded == 1
     # Check that the priority was set as we wanted
+    assert created_job.spec is not None
+    assert created_job.spec.template.spec is not None
     assert created_job.spec.template.spec.priority_class_name == priority_class_name
