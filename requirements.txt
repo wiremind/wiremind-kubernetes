@@ -36,7 +36,7 @@ multidict==6.9.1
     # via
     #   aiohttp
     #   yarl
-oauthlib==3.3.1
+oauthlib==4.0.0
     # via requests-oauthlib
 propcache==0.5.4
     # via
