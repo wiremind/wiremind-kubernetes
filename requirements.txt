@@ -14,7 +14,7 @@ annotated-types==0.8.0
     # via pydantic
 attrs==26.1.0
     # via aiohttp
-certifi==2026.7.22
+certifi==2026.10.18
     # via
     #   kubernetes
     #   requests
