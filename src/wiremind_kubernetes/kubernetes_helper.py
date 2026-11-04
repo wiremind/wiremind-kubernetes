@@ -460,7 +460,7 @@ class KubernetesDeploymentManager(NamespacedKubernetesHelper):
         labels: dict[str, str],
         command: str | None = None,
         args: list[str] | None = None,
-        environment_variables: dict["str", "str"] | None = None,
+        environment_variables: dict[str, str] | None = None,
         ttl_seconds_after_finished: int = 1800,
         image_pull_secrets: list[kubernetes.client.V1LocalObjectReference] | None = None,
         image_pull_policy: str = "IfNotPresent",

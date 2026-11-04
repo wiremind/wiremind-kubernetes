@@ -37,7 +37,7 @@ def delete_namespace() -> None:
 
 
 @pytest.fixture
-def populate_cluster() -> Generator[None, None, None]:
+def populate_cluster() -> Generator[None]:
     run_command("helm repo add wiremind https://wiremind.github.io/wiremind-helm-charts")
     run_command(
         "helm install wiremind-crds wiremind/wiremind-crds --version 0.1.0",
@@ -90,7 +90,7 @@ def populate_cluster() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-def create_namespace() -> Generator[None, None, None]:
+def create_namespace() -> Generator[None]:
     run_command(
         f"kubectl create namespace {TEST_NAMESPACE}",
     )
