@@ -1,5 +1,10 @@
 # wiremind-kubernetes
 
+## v7.8.0 (2026-11-04)
+### Python
+- wiremind-kubernetes supports Python 3.15. The CI tests Python 3.14 and 3.15.
+- The minimum supported Python version is 3.14. Wiremind decommissions Python 3.13.
+
 ## v7.7.3 (2026-10-08)
 ### Fix
 - client: send the pretty query parameter as a string, kubernetes>=37 rejects a bool
